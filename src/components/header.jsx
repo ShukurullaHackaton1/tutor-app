@@ -8,7 +8,7 @@ const Header = () => {
       <div className="flex gap-2">
         <input
           type="text"
-          className="w-[380px] outline-none px-[20px] py-[10px] rounded-full shadow-md"
+          className="w-[380px] outline-none px-[20px] py-[10px] rounded-full shadow-sm"
           placeholder="Izlash.."
         />
         <button className="bg-[#255ED6] w-[40px] h-[40px] rounded-full text-white">
@@ -17,7 +17,7 @@ const Header = () => {
       </div>
       {/* acount */}
       <div className="flex gap-3 items-center">
-        <div className="date bg-white p-2 px-3 rounded-md shadow-md">
+        <div className="date bg-white p-2 px-3 rounded-md shadow-sm">
           <LiveClock />
         </div>
         <div className="user-image">
