@@ -43,13 +43,13 @@ const Statistics = () => {
         <div className="py-2"></div>
         {/* Swiper navigatsiya tugmalari */}
         <button
-          className="absolute top-[50%] left-3 z-10 bg-[transparent] text-[25px] w-[50px] h-[50px] rounded-full shadow-lg"
+          className="absolute top-[50%] left-3 z-10 bg-[transparent] text-[25px] w-[50px] h-[50px] rounded-full "
           onClick={() => swiperRef.current?.slidePrev()}
         >
           <i className="bi bi-arrow-left"></i>
         </button>
         <button
-          className="absolute top-[50%] right-3 z-10 bg-[transparent] text-[25px] w-[50px] h-[50px] rounded-full shadow-lg"
+          className="absolute top-[50%] right-3 z-10 bg-[transparent] text-[25px] w-[50px] h-[50px] rounded-full "
           onClick={() => swiperRef.current?.slideNext()}
         >
           <i className="bi bi-arrow-right"></i>
