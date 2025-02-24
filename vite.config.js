@@ -7,4 +7,7 @@ export default defineConfig({
     strictPort: true, // agar band bo‘lsa, boshqa port tanlamaydi
     open: false, // brauzerda avtomatik ochmaslik
   },
+  optimizeDeps: {
+    exclude: ["react"],
+  },
 });
