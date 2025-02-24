@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import QmuLogo from "../../public/images/qmu-logo.png";
+import QmuLogo from "../images/qmu-logo.png";
 import Link from "antd/es/typography/Link";
 import { useDispatch, useSelector } from "react-redux";
 import AdminService from "../service/admin.service";

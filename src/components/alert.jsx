@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import CheckSuccess from "../../public/icons/success-check.png";
-import ErrorIcon from "../../public/icons/error-icon.png";
+import CheckSuccess from "../icons/success-check.png";
+import ErrorIcon from "../icons/error-icon.png";
 
 export const Success = ({ msg, state }) => {
   const [inState, setInState] = useState(false);

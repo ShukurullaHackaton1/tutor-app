@@ -3,7 +3,6 @@ import { Route, Routes, useNavigate } from "react-router-dom";
 import Layout from "./page/layout";
 import Dashboard from "./page/dashboard";
 import Sign from "./page/sign";
-import { useDispatch } from "react-redux";
 import Statistics from "./page/statistics";
 import MapPage from "./page/map.page";
 
