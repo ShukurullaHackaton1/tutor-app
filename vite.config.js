@@ -1,7 +1,10 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-})
+  server: {
+    host: true, // barcha IP-larga ruxsat
+    port: 5176, // server porti
+    strictPort: true, // agar band bo‘lsa, boshqa port tanlamaydi
+    open: false, // brauzerda avtomatik ochmaslik
+  },
+});
