@@ -103,22 +103,22 @@ const Tutors = () => {
                 </div>
               ) : (
                 <div>
-                  <div className="cursor-pointer mt-3 bg-[#F2F5F9] p-3 rounded-lg">
+                  <div className="cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg">
                     <div className="p-3 flex items-center justify-between px-4 text-lg font-[500]">
                       <span>4K1 (Matematika)</span>
                     </div>
                   </div>
-                  <div className="cursor-pointer mt-3 bg-[#F2F5F9] p-3 rounded-lg">
+                  <div className="cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg">
                     <div className="p-3 flex items-center justify-between px-4 text-lg font-[500]">
                       <span>4K1 (Matematika)</span>
                     </div>
                   </div>
-                  <div className="cursor-pointer mt-3 bg-[#F2F5F9] p-3 rounded-lg">
+                  <div className="cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg">
                     <div className="p-3 flex items-center justify-between px-4 text-lg font-[500]">
                       <span>4K1 (Matematika)</span>
                     </div>
                   </div>
-                  <div className="cursor-pointer mt-3 bg-[#F2F5F9] p-3 rounded-lg">
+                  <div className="cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg">
                     <div className="p-3 flex items-center justify-between px-4 text-lg font-[500]">
                       <span>4K1 (Matematika)</span>
                     </div>
