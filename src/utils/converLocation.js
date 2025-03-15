@@ -6,5 +6,6 @@ export function convertLocations(data) {
       (item.status == "yellow" && "#FFC837") ||
       (item.status == "green" && "#24FE41"), // Rangni o'zgartirish mumkin
     icon: "👨‍🎓",
+    appartmentId: item._id,
   }));
 }

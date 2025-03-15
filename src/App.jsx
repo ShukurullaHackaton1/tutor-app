@@ -5,6 +5,7 @@ import Dashboard from "./page/dashboard";
 import Sign from "./page/sign";
 import Statistics from "./page/statistics";
 import MapPage from "./page/map.page";
+import Tutors from "./page/tutors";
 
 const App = () => {
   const navigate = useNavigate();
@@ -28,10 +29,7 @@ const App = () => {
           element={<Layout activePage={<Statistics />} />}
         />
         <Route path="/map" element={<Layout activePage={<MapPage />} />} />
-        <Route
-          path="/settings"
-          element={<Layout activePage={<h1>settings</h1>} />}
-        />
+        <Route path="/tutors" element={<Layout activePage={<Tutors />} />} />
       </Routes>
     </div>
   );

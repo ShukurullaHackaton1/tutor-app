@@ -5,6 +5,7 @@ const appartmentSlice = createSlice({
   initialState: {
     appartments: [],
     isLoading: false,
+    selectedAppartment: {},
   },
   reducers: {
     getAppartmentsStart: (state) => {
@@ -17,6 +18,9 @@ const appartmentSlice = createSlice({
     getAppartmentsFailure: (state) => {
       state.isLoading = false;
     },
+    setSelectedAppartment: (state, action) => {
+      state.selectedAppartment = action.payload;
+    },
   },
 });
 
@@ -24,6 +28,7 @@ export const {
   getAppartmentsFailure,
   getAppartmentsStart,
   getAppartmentsSuccess,
+  setSelectedAppartment,
 } = appartmentSlice.actions;
 
 export default appartmentSlice.reducer;

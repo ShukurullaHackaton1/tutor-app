@@ -22,7 +22,6 @@ const Statistics = () => {
   useEffect(() => {
     dispatch(changePage("Statistika"));
     StatisticsService.getGenderStatistics(dispatch);
-    StatisticsService.getAppartmentsLocation(dispatch);
     StatisticsService.getLevelStudents(dispatch);
     StatisticsService.getBoilerTypes(dispatch);
     StatisticsService.getSmallDistricts(dispatch);
@@ -30,7 +29,7 @@ const Statistics = () => {
   }, []);
 
   return (
-    <div className="relative h-100">
+    <div className="relative h-[80vh]">
       <div className="mb-3">
         {fullStatisticPage ? (
           ""

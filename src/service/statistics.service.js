@@ -42,6 +42,21 @@ const StatisticsService = {
     dispatch(statisticsStart());
     try {
       const { data } = await axios.get("/statistics/appartments/map");
+      console.log(data.data);
+      dispatch(getMapAppartments(convertLocations(data.data)));
+    } catch (error) {
+      console.log(error);
+      dispatch(statisticsFailure());
+    }
+  },
+  async filterAppartmentLocation(dispatch, filter) {
+    dispatch(statisticsStart());
+    try {
+      const { data } = await axios.post(
+        "/statistics/appartment/filter",
+        filter
+      );
+      console.log(data.data);
       dispatch(getMapAppartments(convertLocations(data.data)));
     } catch (error) {
       console.log(error);

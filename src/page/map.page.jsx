@@ -3,12 +3,14 @@ import MapComponent from "../components/map";
 import { useDispatch, useSelector } from "react-redux";
 import { changePage } from "../store/slice/ui.slice";
 import { Link } from "react-router-dom";
+import StatisticsService from "../service/statistics.service";
 
 const MapPage = () => {
   const dispatch = useDispatch();
   const { fullStatisticPage } = useSelector((state) => state.ui);
   useEffect(() => {
     dispatch(changePage("Xarita"));
+    StatisticsService.getAppartmentsLocation(dispatch);
   }, []);
 
   return (

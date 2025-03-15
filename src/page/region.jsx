@@ -50,14 +50,10 @@ const RegionStatistics = () => {
                 <BarChart
                   layout="vertical"
                   data={data}
-                  margin={{ top: 20, right: 30, left: 100, bottom: 5 }} // Yozuvlarni to‘liq chiqarish uchun left: 100
+                  margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
                 >
                   <XAxis type="number" />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    width={150} // Y o‘qdagi matnlarga ko‘proq joy ajratish
-                  />
+                  <YAxis dataKey="name" type="category" width={150} />
                   <Tooltip />
                   <Bar dataKey="count" fill="#42A5F5" />
                 </BarChart>
