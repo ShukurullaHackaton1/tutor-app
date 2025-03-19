@@ -63,7 +63,7 @@ const LiveClock = () => {
       </span>{" "}
       <span className="text-[#007AFF]">{formatTime().yil}</span>,{" "}
       <span>{formatTime().haftaKuni}</span> <span>{formatTime().kun}</span>{" "}
-      <span className="text-[#007AFF]">{formatTime().yil}</span>
+      <span className="text-[#007AFF]">{formatTime().oy}</span>
     </span>
   );
 };

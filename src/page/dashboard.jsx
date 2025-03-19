@@ -60,12 +60,14 @@ const Dashboard = () => {
                   {tutors.tutors.map((item) => (
                     <div className="flex cursor-pointer bg-[#F2F5F9] p-3 rounded-lg items-center justify-between">
                       <div className="info flex item-center items-center gap-4">
-                        <img
-                          src={item.image}
-                          className="w-[60px] bg-[#fff] h-[60px] rounded-full"
-                          alt="tutorImage"
-                        />
-                        <div className="">
+                        <div className="w-[60px] h-[70px]">
+                          <img
+                            src={item.image}
+                            className="w-[60px]  h-[60px] rounded-full"
+                            alt="tutorImage"
+                          />
+                        </div>
+                        <div className="w-">
                           <h1 className="text-xl font-[500]">{item.name}</h1>
                           <p className="text-[#B4B6BA] text-md">
                             {item.group.map((group) => (
