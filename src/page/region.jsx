@@ -49,7 +49,7 @@ const RegionStatistics = () => {
   return (
     <BoxComponent>
       <div className="flex items-center justify-between">
-        <div className="title text-[20px] font-[500] mb-2">Statistika</div>
+        <div className="title text-[20px] font-[500] mb-2"></div>
         <div className="flex gap-3">
           <button
             className="btn bg-[#255ED6] text-white px-3 py-2 rounded"

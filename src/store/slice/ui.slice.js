@@ -5,6 +5,7 @@ const uiSlice = createSlice({
   initialState: {
     currentPage: "Bosh sahifa",
     fullStatisticPage: false,
+    openCreateSide: false,
   },
   reducers: {
     changePage: (state, action) => {
@@ -13,9 +14,12 @@ const uiSlice = createSlice({
     changeFullPage: (state, action) => {
       state.fullStatisticPage = action.payload;
     },
+    changeCreateSide: (state, action) => {
+      state.openCreateSide = action.payload;
+    },
   },
 });
 
-export const { changePage, changeFullPage } = uiSlice.actions;
+export const { changePage, changeFullPage, changeCreateSide } = uiSlice.actions;
 
 export default uiSlice.reducer;

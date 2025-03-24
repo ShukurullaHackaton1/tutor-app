@@ -59,7 +59,7 @@ const GenderStatistics = () => {
     <div className="">
       <BoxComponent>
         <div className="flex items-center justify-between">
-          <div className="title text-[20px] font-[500] mb-2">Statistika</div>
+          <div className="title text-[20px] font-[500] mb-2"></div>
           <button className="btn bg-[#255ED6]" onClick={changeSizePage}>
             <i
               className={`bi text-[20px] text-[#fff] ${

@@ -24,3 +24,13 @@ body {
 .leaflet-container {
   height: 90% !important;
 }
+
+.multi-line {
+  width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 2 qatorgacha ko‘rsatish */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 5px;
+}

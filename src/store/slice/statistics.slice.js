@@ -10,6 +10,7 @@ const statisticsSlice = createSlice({
     boilerTypes: [],
     smallDistricts: [],
     regionStudents: [],
+    facultyData: [],
   },
   reducers: {
     statisticsStart: (state) => {
@@ -42,6 +43,10 @@ const statisticsSlice = createSlice({
       state.isLoading = false;
       state.regionStudents = action.payload;
     },
+    getFacultyDataSuccess: (state, action) => {
+      state.isLoading = false;
+      state.facultyData = action.payload;
+    },
   },
 });
 
@@ -53,6 +58,7 @@ export const {
   boilerTypes,
   levelStudents,
   studentsRegion,
+  getFacultyDataSuccess,
   smallDistricts,
 } = statisticsSlice.actions;
 

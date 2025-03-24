@@ -113,3 +113,25 @@ export const smallStricts = [
     name: "28 - kichik tuman",
   },
 ];
+
+export const faculties = [
+  "Arxitektura",
+  "Biologiya",
+  "Chet tillari",
+  "Chimboy",
+  "Fizika",
+  "Geografiya va tabiiy resurslar",
+  "Iqtisodiyot",
+  "Jismoniy madaniyat",
+  "Kimyo-texnologiya",
+  "Magistratura bo'limi",
+  "Matematika",
+  "O'zbek filologiyasi",
+  "Qoraqalpoq filologiyasi va jurnalistika",
+  "Qurilish",
+  "San'atshunoslik",
+  "Sanoat texnologiyasi",
+  "Sirtqi bo'lim",
+  "Tarix",
+  "Yuridika",
+];

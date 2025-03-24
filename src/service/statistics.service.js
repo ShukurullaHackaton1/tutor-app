@@ -1,6 +1,7 @@
 import {
   boilerTypes,
   genderStatistics,
+  getFacultyDataSuccess,
   getMapAppartments,
   levelStudents,
   smallDistricts,
@@ -108,6 +109,19 @@ const StatisticsService = {
       const { data } = await axios.get("/statistics/region");
 
       dispatch(studentsRegion(data.data));
+    } catch (error) {
+      console.log(error);
+      dispatch(statisticsFailure());
+    }
+  },
+  async facultyData(dispatch, faculties) {
+    dispatch(statisticsStart());
+    try {
+      const { data } = await axios.post("/statistics/faculty-data", {
+        faculty: faculties,
+      });
+
+      dispatch(getFacultyDataSuccess(data));
     } catch (error) {
       console.log(error);
       dispatch(statisticsFailure());

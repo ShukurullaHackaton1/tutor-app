@@ -50,15 +50,15 @@ const Dashboard = () => {
               )}
             </BoxComponent>
           </div>
-          <div className="h-[40vh] mt-3 overflow-y-scroll">
+          <div className="h-[40vh] mt-3">
             <BoxComponent>
               <div className="title text-[20px] font-[500] mb-2">Tutorlar</div>
               {tutors.isLoading ? (
                 <ShimmerLoading height="300px" />
               ) : (
-                <div>
+                <div className="w-100 h-100 pb-5 overflow-y-scroll">
                   {tutors.tutors.map((item) => (
-                    <div className="flex cursor-pointer bg-[#F2F5F9] p-3 rounded-lg items-center justify-between">
+                    <div className="flex cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg items-center justify-between">
                       <div className="info flex item-center items-center gap-4">
                         <div className="w-[60px] h-[70px]">
                           <img
@@ -69,9 +69,9 @@ const Dashboard = () => {
                         </div>
                         <div className="w-">
                           <h1 className="text-xl font-[500]">{item.name}</h1>
-                          <p className="text-[#B4B6BA] text-md">
+                          <p className="text-[#B4B6BA] multi-line text-md">
                             {item.group.map((group) => (
-                              <span>{group.name} </span>
+                              <span>{group.name?.slice(0, 10) + "..."} </span>
                             ))}
                           </p>
                         </div>

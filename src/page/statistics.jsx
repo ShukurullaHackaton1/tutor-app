@@ -13,6 +13,9 @@ import BoilerTypestatistics from "./boilerTypes.statistics";
 import StatisticsService from "../service/statistics.service";
 import SmallDistricts from "./smallDistricts";
 import RegionStatistics from "./region";
+import { CustomChart } from "../components/chart";
+import FacultyStatistics from "./faculty.statistics";
+import { faculties } from "../constants";
 
 const Statistics = () => {
   const dispatch = useDispatch();
@@ -26,10 +29,11 @@ const Statistics = () => {
     StatisticsService.getBoilerTypes(dispatch);
     StatisticsService.getSmallDistricts(dispatch);
     StatisticsService.regionStudents(dispatch);
+    StatisticsService.facultyData(dispatch, faculties);
   }, []);
 
   return (
-    <div className="relative h-[80vh]">
+    <div className=" h-[80vh]">
       <div className="mb-3">
         {fullStatisticPage ? (
           ""
@@ -42,13 +46,13 @@ const Statistics = () => {
         <div className="py-2"></div>
         {/* Swiper navigatsiya tugmalari */}
         <button
-          className="absolute top-[50%] left-3 z-10 bg-[transparent] text-[25px] w-[50px] h-[50px] rounded-full "
+          className="absolute top-[50%] left-[30px] z-10 bg-[transparent] text-[25px] w-[50px] h-[50px] rounded-full "
           onClick={() => swiperRef.current?.slidePrev()}
         >
           <i className="bi bi-arrow-left"></i>
         </button>
         <button
-          className="absolute top-[50%] right-3 z-10 bg-[transparent] text-[25px] w-[50px] h-[50px] rounded-full "
+          className="absolute top-[50%] right-[50px] z-10 bg-[transparent] text-[25px] w-[50px] h-[50px] rounded-full "
           onClick={() => swiperRef.current?.slideNext()}
         >
           <i className="bi bi-arrow-right"></i>
@@ -74,6 +78,9 @@ const Statistics = () => {
           </SwiperSlide>
           <SwiperSlide>
             <RegionStatistics />
+          </SwiperSlide>
+          <SwiperSlide>
+            <FacultyStatistics />
           </SwiperSlide>
         </Swiper>
       </div>

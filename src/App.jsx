@@ -7,6 +7,7 @@ import Statistics from "./page/statistics";
 import MapPage from "./page/map.page";
 import Tutors from "./page/tutors";
 import FilterPage from "./page/filter.page";
+import { Toaster } from "react-hot-toast";
 
 const App = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const App = () => {
 
   return (
     <div>
+      <Toaster />
       <Routes>
         <Route path="/" element={<Layout activePage={<Dashboard />} />} />
         <Route path="/sign" element={<Sign />} />
