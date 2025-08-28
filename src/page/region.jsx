@@ -274,7 +274,7 @@ const RegionStatistics = () => {
                 TOP 5 Viloyatlar
               </h4>
               <div className="space-y-3">
-                {[0, statistics.regionStudents]
+                {[...statistics.regionStudents]
                   .sort((a, b) => b.total - a.total)
                   .slice(0, 5)
                   .map((item, index) => (
