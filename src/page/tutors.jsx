@@ -14,6 +14,7 @@ const Tutors = () => {
   const dispatch = useDispatch();
   const tutors = useSelector((state) => state.tutor);
   const [selectTutor, setSelectTutor] = useState("");
+  console.log(tutors.groups);
 
   const [openCreateSide, setOpenCreateSide] = useState(false);
   const [thumbnailImage, setThumbnailImage] = useState(
@@ -45,31 +46,78 @@ const Tutors = () => {
   useEffect(() => {
     dispatch(changePage("Tutorlar"));
     TutorService.getTutors(dispatch);
-
     TutorService.getGroups(dispatch, search);
   }, []);
 
   useEffect(() => {
     TutorService.getGroups(dispatch, search);
     if (search == "") TutorService.getGroups(dispatch, search);
-    {
-    }
   }, [search]);
 
   const changeImage = (e) => {
     const file = e.target.files[0];
-    const thumbnail = URL.createObjectURL(file);
-    setThumbnailImage(thumbnail);
-    setImage(file);
+    if (file) {
+      const thumbnail = URL.createObjectURL(file);
+      setThumbnailImage(thumbnail);
+      setImage(file);
+    }
+  };
+
+  // State'larni tozalash funksiyasi
+  const clearStates = () => {
+    setFirstname("");
+    setLastname("");
+    setPhone("");
+    setLogin("");
+    setPassword("");
+    setImage("");
+    setSelectGroups([]);
+    setThumbnailImage(
+      "https://static.vecteezy.com/system/resources/thumbnails/024/983/914/small/simple-user-default-icon-free-png.png"
+    );
+    setError({
+      message: "",
+      state: false,
+    });
   };
 
   const createHandler = async (e) => {
     e.preventDefault();
+    console.log("bosildi");
 
-    if (!image || !(image instanceof File)) {
+    // Majburiy maydonlarni tekshirish
+    if (!firstname.trim()) {
       return setError({
         state: true,
-        message: "Iltimos, rasm tanlang",
+        message: "Iltimos, ism kiriting",
+      });
+    }
+
+    if (!lastname.trim()) {
+      return setError({
+        state: true,
+        message: "Iltimos, familiya kiriting",
+      });
+    }
+
+    if (!phone.trim()) {
+      return setError({
+        state: true,
+        message: "Iltimos, telefon raqam kiriting",
+      });
+    }
+
+    if (!login.trim()) {
+      return setError({
+        state: true,
+        message: "Iltimos, login kiriting",
+      });
+    }
+
+    if (!password.trim()) {
+      return setError({
+        state: true,
+        message: "Iltimos, parol kiriting",
       });
     }
 
@@ -86,10 +134,14 @@ const Tutors = () => {
     formData.append("name", `${firstname} ${lastname}`);
     formData.append("phone", phone);
     formData.append("group", JSON.stringify(selectGroups));
-    formData.append("image", image); // Fayl yuklanadi
+
+    // Agar rasm tanlangan bo'lsa qo'shamiz
+    if (image && image instanceof File) {
+      formData.append("image", image);
+    }
 
     try {
-      const response = await fetch("http://localhost:5050/tutor/create", {
+      const response = await fetch("http://localhost:7788/tutor/create", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("admin-jwt")}`,
@@ -102,12 +154,13 @@ const Tutors = () => {
       if (data.status == "success") {
         toast.success("Tutor muaffaqiyatli yaratildi!!");
         setOpenCreateSide(false);
-        setFirstname("");
-        setLastname("");
-        setPhone("");
-        setImage("");
-        setSelectGroups([]);
+        clearStates(); // State'larni tozalash
         TutorService.getTutors(dispatch);
+      } else {
+        setError({
+          state: true,
+          message: data.message || "Tutor yaratishda xatolik yuz berdi",
+        });
       }
     } catch (error) {
       console.error("Error creating tutor:", error);
@@ -135,7 +188,7 @@ const Tutors = () => {
   };
 
   return (
-    <div>
+    <div className="h-[100vh] overflow-y-scroll">
       <div className="mb-3">
         <Link className="text-primary">Tutorlar</Link>{" "}
         <i className="bi bi-chevron-right"></i>
@@ -177,7 +230,10 @@ const Tutors = () => {
             <div className="config">
               <div className="flex gap-3 items-center">
                 <div
-                  onClick={() => setOpenCreateSide(false)}
+                  onClick={() => {
+                    setOpenCreateSide(false);
+                    clearStates(); // Yopilganda state'larni tozalash
+                  }}
                   className="w-[40px]  cursor-pointer h-[40px] flex items-center justify-center bg-white rounded-lg"
                 >
                   <i className="bi bi-arrow-left text-2xl "></i>
@@ -185,6 +241,19 @@ const Tutors = () => {
                 <div className="text-2xl font-[500]">Tyutor</div>
               </div>
             </div>
+
+            {error.state && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded my-3">
+                {error.message}
+                <button
+                  onClick={() => setError({ message: "", state: false })}
+                  className="float-right font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+
             <form onSubmit={(e) => createHandler(e)}>
               <div className="image my-4">
                 <label
@@ -194,7 +263,7 @@ const Tutors = () => {
                   <div className="w-[130px] rounded-lg bg-white p-3 h-[130px] relative">
                     <img
                       src={thumbnailImage}
-                      className="w-[100px] h-[100px] rounded-lg"
+                      className="w-[100px] h-[100px] rounded-lg object-cover"
                     />
                     <img
                       src={EditPng}
@@ -218,6 +287,7 @@ const Tutors = () => {
                   value={firstname}
                   onChange={(e) => setFirstname(e.target.value)}
                   className="p-2 col-11 outline-none text-xl"
+                  required
                 />
                 <div className="col-1 flex items-center justify-center">
                   <img src={EditPng} className="w-[30px] h-[30px]" alt="" />
@@ -230,6 +300,7 @@ const Tutors = () => {
                   value={lastname}
                   onChange={(e) => setLastname(e.target.value)}
                   className="p-2 col-11 outline-none text-xl"
+                  required
                 />
                 <div className="col-1 flex items-center justify-center">
                   <img src={EditPng} className="w-[30px] h-[30px]" alt="" />
@@ -243,6 +314,7 @@ const Tutors = () => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="p-2 col-9 translate-x-[-20px] outline-none text-xl"
+                  required
                 />
                 <div className="col-1 flex items-center justify-center">
                   <img src={EditPng} className="w-[30px] h-[30px]" alt="" />
@@ -255,6 +327,7 @@ const Tutors = () => {
                   value={login}
                   onChange={(e) => setLogin(e.target.value)}
                   className="p-2 col-11 outline-none text-xl"
+                  required
                 />
                 <div className="col-1 flex items-center justify-center">
                   <img src={EditPng} className="w-[30px] h-[30px]" alt="" />
@@ -262,19 +335,20 @@ const Tutors = () => {
               </div>
               <div className="input flex my-3 bg-white p-2  rounded-lg">
                 <input
-                  type="text"
+                  type="password"
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="p-2 col-11 outline-none text-xl"
+                  required
                 />
                 <div className="col-1 flex items-center justify-center">
                   <img src={EditPng} className="w-[30px] h-[30px]" alt="" />
                 </div>
               </div>
               <button
-                disabled={tutors.isLoading}
-                className="btn btn-primary text-xl rounded-lg block"
+                type="submit"
+                className="btn btn-primary text-xl rounded-lg block w-full"
               >
                 Yaratish
               </button>
@@ -308,7 +382,10 @@ const Tutors = () => {
               ) : (
                 <div>
                   {tutors.tutors.map((item) => (
-                    <div className="cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg">
+                    <div
+                      key={item._id}
+                      className="cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg"
+                    >
                       <div
                         onClick={() =>
                           selectTutor == item._id
@@ -320,7 +397,7 @@ const Tutors = () => {
                         <div className="info flex item-center items-center gap-4">
                           <img
                             src={item.image}
-                            className="w-[60px] bg-[#fff] h-[60px] rounded-full"
+                            className="w-[60px] bg-[#fff] h-[60px] rounded-full object-cover"
                             alt="tutorImage"
                           />
                           <div className="">
@@ -335,25 +412,30 @@ const Tutors = () => {
                       </div>
                       {selectTutor == item._id ? (
                         <>
-                          {item.group.map((group) => (
-                            <div className="p-3 flex items-center justify-between px-4 text-lg font-[500]">
-                              <span>{group.name}</span>
-                              <img
-                                onClick={() => {
-                                  setOpenWarningModal(true);
-                                  setSelectGroup({
-                                    tutor: {
-                                      id: item._id,
-                                      tutorName: item.name,
-                                    },
-                                    group: group.name,
-                                  });
-                                }}
-                                src={TrashIcon}
-                                alt=""
-                              />
-                            </div>
-                          ))}
+                          {item.group &&
+                            item.group.map((group, index) => (
+                              <div
+                                key={index}
+                                className="p-3 flex items-center justify-between px-4 text-lg font-[500]"
+                              >
+                                <span>{group.name}</span>
+                                <img
+                                  onClick={() => {
+                                    setOpenWarningModal(true);
+                                    setSelectGroup({
+                                      tutor: {
+                                        id: item._id,
+                                        tutorName: item.name,
+                                      },
+                                      group: group.name,
+                                    });
+                                  }}
+                                  src={TrashIcon}
+                                  className="cursor-pointer"
+                                  alt="delete"
+                                />
+                              </div>
+                            ))}
                         </>
                       ) : (
                         ""
@@ -371,7 +453,7 @@ const Tutors = () => {
                     placeholder="Qidirish"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="p-2 col-11 rounded-lg outline-none text-xl"
+                    className="p-2 col-11 rounded-lg outline-none text-xl bg-transparent"
                   />
                   <div className="col-1 flex items-center justify-center">
                     <button className="btn btn-primary">
@@ -400,45 +482,59 @@ const Tutors = () => {
               ) : (
                 <div>
                   <div className="h-[60vh] overflow-y-scroll">
-                    {tutors.groups.map((item) => (
-                      <div
-                        className="cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg "
-                        onClick={() => {
-                          selectGroups.find((c) => c.name == item) &&
-                          openCreateSide
-                            ? setSelectGroups(
-                                selectGroups.filter((c) => c.name != item)
-                              )
-                            : setSelectGroups([
-                                ...selectGroups,
-                                {
-                                  name: item,
-                                },
-                              ]);
-                        }}
-                      >
-                        <div className="p-3 flex items-center justify-between px-4 text-lg font-[500]">
-                          <span>{item}</span>
-                          {openCreateSide ? (
-                            <div
-                              className={`w-[30px] flex items-center justify-center text-[#F2F5F9] h-[30px] border rounded-md ${
-                                selectGroups.find((c) => c.name == item)
-                                  ? "bg-primary"
-                                  : " bg-white"
-                              }`}
-                            >
-                              {selectGroups.find((c) => c.name == item) ? (
-                                <i className="bi bi-check text-3xl"></i>
-                              ) : (
-                                ""
-                              )}
+                    {tutors.groups &&
+                      tutors.groups.map((item, index) => (
+                        <div
+                          key={item.id || index}
+                          className="cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg "
+                          onClick={() => {
+                            if (openCreateSide) {
+                              const isSelected = selectGroups.find(
+                                (c) => c.code == item.id
+                              );
+                              if (isSelected) {
+                                setSelectGroups(
+                                  selectGroups.filter((c) => c.code != item.id)
+                                );
+                              } else {
+                                setSelectGroups([
+                                  ...selectGroups,
+                                  {
+                                    name: item.name,
+                                    code: item.id, // id ni code sifatida jo'natamiz
+                                  },
+                                ]);
+                              }
+                            }
+                          }}
+                        >
+                          <div className="p-3 flex items-center justify-between px-4 text-lg font-[500]">
+                            <div>
+                              <div>{item.name}</div>
+                              <div className="text-sm text-gray-500">
+                                {item.educationLang?.name}
+                              </div>
                             </div>
-                          ) : (
-                            ""
-                          )}
+                            {openCreateSide ? (
+                              <div
+                                className={`w-[30px] flex items-center justify-center text-[#F2F5F9] h-[30px] border rounded-md ${
+                                  selectGroups.find((c) => c.code == item.id)
+                                    ? "bg-primary"
+                                    : " bg-white"
+                                }`}
+                              >
+                                {selectGroups.find((c) => c.code == item.id) ? (
+                                  <i className="bi bi-check text-3xl"></i>
+                                ) : (
+                                  ""
+                                )}
+                              </div>
+                            ) : (
+                              ""
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
               )}
@@ -447,7 +543,10 @@ const Tutors = () => {
           <div className="flex items-center mt-3 justify-end">
             <button
               className="btn btn-primary"
-              onClick={() => setOpenCreateSide(true)}
+              onClick={() => {
+                setOpenCreateSide(true);
+                clearStates(); // Ochilganda state'larni tozalash
+              }}
             >
               <i className="bi bi-plus-lg text-2xl"></i>
             </button>
