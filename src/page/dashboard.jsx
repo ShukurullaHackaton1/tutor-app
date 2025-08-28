@@ -3,7 +3,7 @@ import MapComponent from "../components/map";
 import { useDispatch, useSelector } from "react-redux";
 import AppartmentService from "../service/appartment.service";
 import ShimmerLoading from "../components/loading/loading";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import BoxComponent from "../components/boxComponent";
 import PieActiveArc from "../components/chart";
 import StatisticsService from "../service/statistics.service";
@@ -15,6 +15,8 @@ const Dashboard = () => {
   const statistics = useSelector((state) => state.statistics);
   const { fullStatisticPage } = useSelector((state) => state.ui);
   const tutors = useSelector((state) => state.tutor);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     dispatch(changePage("Bosh sahifa"));
@@ -58,7 +60,10 @@ const Dashboard = () => {
               ) : (
                 <div className="w-100 h-100 pb-5 overflow-y-scroll">
                   {tutors.tutors.map((item) => (
-                    <div className="flex cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg items-center justify-between">
+                    <div
+                      onClick={() => navigate("/tutors")}
+                      className="flex cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg items-center justify-between"
+                    >
                       <div className="info flex item-center items-center gap-4">
                         <div className="w-[60px] h-[70px]">
                           <img

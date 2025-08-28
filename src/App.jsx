@@ -6,7 +6,6 @@ import Sign from "./page/sign";
 import Statistics from "./page/statistics";
 import MapPage from "./page/map.page";
 import Tutors from "./page/tutors";
-import FilterPage from "./page/filter.page";
 import { Toaster } from "react-hot-toast";
 
 const App = () => {
@@ -33,7 +32,6 @@ const App = () => {
         />
         <Route path="/map" element={<Layout activePage={<MapPage />} />} />
         <Route path="/tutors" element={<Layout activePage={<Tutors />} />} />
-        <Route path="/filter" element={<FilterPage />} />
       </Routes>
     </div>
   );
