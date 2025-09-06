@@ -9,6 +9,7 @@ import { MdClose, MdCheck, MdArrowBack } from "react-icons/md";
 import { changeCreateSide } from "../store/slice/ui.slice";
 import { getFacultyDataSuccess } from "../store/slice/statistics.slice";
 import StatisticsService from "../service/statistics.service";
+import { Logo } from "../images";
 
 const Layout = ({ activePage }) => {
   const { currentPage, fullStatisticPage, openCreateSide } = useSelector(
@@ -36,7 +37,7 @@ const Layout = ({ activePage }) => {
               className="fixed inset-0 bg-black bg-opacity-50 z-40"
               onClick={() => dispatch(changeCreateSide(false))}
             />
-            
+
             {/* Sidebar */}
             <motion.div
               initial={{ x: -400, opacity: 0 }}
@@ -57,7 +58,9 @@ const Layout = ({ activePage }) => {
                     >
                       <MdArrowBack size={20} />
                     </motion.button>
-                    <h2 className="text-xl font-semibold text-white">Statistika filtri</h2>
+                    <h2 className="text-xl font-semibold text-white">
+                      Statistika filtri
+                    </h2>
                   </div>
                 </div>
 
@@ -72,7 +75,9 @@ const Layout = ({ activePage }) => {
                         transition={{ delay: index * 0.05 }}
                         onClick={() =>
                           selectFaculty.find((c) => c === item)
-                            ? setSelectFaculty(selectFaculty.filter((c) => c !== item))
+                            ? setSelectFaculty(
+                                selectFaculty.filter((c) => c !== item)
+                              )
                             : setSelectFaculty([...selectFaculty, item])
                         }
                         className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${
@@ -82,7 +87,9 @@ const Layout = ({ activePage }) => {
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-800">{item}</span>
+                          <span className="font-medium text-gray-800">
+                            {item}
+                          </span>
                           <div
                             className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
                               selectFaculty.find((c) => c === item)
@@ -138,10 +145,7 @@ const Layout = ({ activePage }) => {
                   animate={{ scale: 1, opacity: 1 }}
                   className="mb-8 text-center"
                 >
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <span className="text-white font-bold text-xl">A</span>
-                  </div>
-                  <h3 className="font-semibold text-gray-800">Admin Panel</h3>
+                  <img src={Logo} className="w-[100px] mx-auto" alt="" />
                 </motion.div>
 
                 {/* Navigation */}

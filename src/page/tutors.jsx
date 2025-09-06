@@ -990,7 +990,11 @@ const Tutors = () => {
               )}
             </div>
 
-            <div className={`${openCreateSide ? "col-7" : "col-6"}`}>
+            <div
+              className={`${
+                openCreateSide ? "col-7" : "col-6"
+              } overflow-y-hidden h-[60vh]`}
+            >
               {openCreateSide && (
                 <div className="input flex my-3 bg-[#F2F5F9] p-2 rounded-lg">
                   <input
@@ -1008,21 +1012,21 @@ const Tutors = () => {
                 </div>
               )}
 
-              <div className="bg-white rounded-xl shadow-lg p-4">
+              <div className="bg-white  rounded-xl shadow-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Mavjud Guruhlar
                 </h3>
 
                 {tutors.groupLoading ? (
                   <div>
-                    {[1, 2, 3, 4].map((_, index) => (
+                    {[1, 2, 3].map((_, index) => (
                       <div className="mt-3" key={index}>
                         <ShimmerLoading height="80px" />
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="h-[55vh] overflow-y-auto space-y-3">
+                  <div className="h-[50vh] overflow-y-auto space-y-3">
                     {tutors.groups &&
                       tutors.groups.map((item, index) => (
                         <motion.div

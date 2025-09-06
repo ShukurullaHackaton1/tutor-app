@@ -40,6 +40,8 @@ const StatisticsService = {
     }
   },
 
+  // StatisticsService.js - getAppartmentsLocation funksiyasini yangilash
+
   async getAppartmentsLocation(dispatch) {
     try {
       console.log("🗺️ Fetching map data from API...");
@@ -52,11 +54,42 @@ const StatisticsService = {
         console.log("📊 Total apartments:", response.data.total);
 
         if (response.data.data && Array.isArray(response.data.data)) {
-          const convertedData = convertLocations(response.data.data);
-          console.log("🔄 Converted data for map:", convertedData);
+          // Ma'lumotlarni tekshirish va tozalash
+          const validData = response.data.data.filter((item) => {
+            return (
+              item &&
+              item.location &&
+              item.location.lat &&
+              item.location.long &&
+              !isNaN(parseFloat(item.location.lat)) &&
+              !isNaN(parseFloat(item.location.long))
+            );
+          });
 
-          dispatch(getMapAppartments(convertedData));
-          console.log("✅ Map data dispatched to Redux");
+          console.log(
+            `🔍 Valid apartments: ${validData.length} out of ${response.data.data.length}`
+          );
+
+          if (validData.length > 0) {
+            const convertedData = convertLocations(validData);
+            console.log("🔄 Converted data for map:", convertedData);
+
+            dispatch(getMapAppartments(convertedData));
+            console.log("✅ Map data dispatched to Redux");
+          } else {
+            console.warn("⚠️ No valid apartment data found");
+            // Test marker qo'shamiz
+            const testMarker = [
+              {
+                coords: [42.46, 59.61], // Nukus
+                color: "#42A5F5",
+                icon: "🏠",
+                appartmentId: "test-nukus",
+                status: "test",
+              },
+            ];
+            dispatch(getMapAppartments(testMarker));
+          }
         } else {
           console.warn("⚠️ Invalid data structure:", response.data);
           dispatch(getMapAppartments([]));
@@ -73,7 +106,18 @@ const StatisticsService = {
         data: error.response?.data,
         url: error.config?.url,
       });
-      dispatch(getMapAppartments([]));
+
+      // Xatolik yuz berganda test marker qo'shamiz
+      const fallbackMarker = [
+        {
+          coords: [42.46, 59.61], // Nukus
+          color: "#FF512F",
+          icon: "❌",
+          appartmentId: "error-marker",
+          status: "error",
+        },
+      ];
+      dispatch(getMapAppartments(fallbackMarker));
     }
   },
 
