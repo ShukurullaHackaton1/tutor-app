@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL ni to'g'ri o'rnatish
-axios.defaults.baseURL = "http://localhost:7788";
+axios.defaults.baseURL = "http://tutorapp.kerek.uz";
 
 // Request interceptor - har bir so'rovga token qo'shish
 axios.interceptors.request.use(
@@ -10,10 +10,12 @@ axios.interceptors.request.use(
     if (token && token !== "undefined") {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     // Debug logging
-    console.log(`📡 API Request: ${config.method?.toUpperCase()} ${config.url}`);
-    
+    console.log(
+      `📡 API Request: ${config.method?.toUpperCase()} ${config.url}`
+    );
+
     return config;
   },
   (error) => {
@@ -25,7 +27,11 @@ axios.interceptors.request.use(
 // Response interceptor - javoblarni boshqarish
 axios.interceptors.response.use(
   (response) => {
-    console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
+    console.log(
+      `✅ API Response: ${response.config.method?.toUpperCase()} ${
+        response.config.url
+      } - ${response.status}`
+    );
     return response;
   },
   (error) => {
@@ -34,15 +40,15 @@ axios.interceptors.response.use(
       method: error.config?.method,
       status: error.response?.status,
       message: error.message,
-      data: error.response?.data
+      data: error.response?.data,
     });
-    
+
     // 401 xatolik bo'lsa, foydalanuvchini login sahifasiga yo'naltirish
     if (error.response?.status === 401) {
       localStorage.removeItem("admin-jwt");
       window.location.href = "/sign";
     }
-    
+
     return Promise.reject(error);
   }
 );

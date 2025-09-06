@@ -5,7 +5,13 @@ import { Link } from "react-router-dom";
 import Header from "../components/header";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
-import { MdClose, MdCheck, MdArrowBack } from "react-icons/md";
+import {
+  MdClose,
+  MdCheck,
+  MdArrowBack,
+  MdLogout,
+  MdWarning,
+} from "react-icons/md";
 import { changeCreateSide } from "../store/slice/ui.slice";
 import { getFacultyDataSuccess } from "../store/slice/statistics.slice";
 import StatisticsService from "../service/statistics.service";
@@ -18,13 +24,97 @@ const Layout = ({ activePage }) => {
   const { facultyData } = useSelector((state) => state.statistics);
   const dispatch = useDispatch();
   const [selectFaculty, setSelectFaculty] = useState([]);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const filterHandler = async () => {
     await StatisticsService.facultyData(dispatch, selectFaculty);
   };
 
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
+
   return (
     <div className="relative">
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 z-50"
+              onClick={() => setShowLogoutModal(false)}
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 50 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-red-100 rounded-lg">
+                      <MdWarning className="text-red-600" size={24} />
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      Tizimdan chiqish
+                    </h2>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowLogoutModal(false)}
+                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <MdClose className="text-gray-500" size={20} />
+                  </motion.button>
+                </div>
+
+                {/* Content */}
+                <div className="mb-6">
+                  <p className="text-gray-600 text-center">
+                    Haqiqatan ham admin paneldan chiqmoqchimisiz?
+                  </p>
+                  <p className="text-sm text-gray-500 text-center mt-2">
+                    Barcha ochiq bo'lgan ishlar yo'qoladi va qaytadan
+                    kirishingiz kerak bo'ladi.
+                  </p>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex space-x-3">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleLogout}
+                    className="flex-1 flex items-center justify-center space-x-2 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+                  >
+                    <MdLogout size={18} />
+                    <span>Ha, chiqish</span>
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowLogoutModal(false)}
+                    className="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                  >
+                    Bekor qilish
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Filter Sidebar */}
       <AnimatePresence>
         {openCreateSide && (
@@ -182,12 +272,11 @@ const Layout = ({ activePage }) => {
                   <i className="bi bi-question-circle text-lg"></i>
                   <span className="font-medium">Yordam</span>
                 </motion.button>
+
+                {/* Yangilangan logout tugmasi */}
                 <motion.button
                   whileHover={{ scale: 1.02 }}
-                  onClick={() => {
-                    localStorage.clear();
-                    window.location.reload();
-                  }}
+                  onClick={() => setShowLogoutModal(true)}
                   className="flex items-center gap-3 w-full p-3 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-xl transition-all"
                 >
                   <i className="bi bi-box-arrow-right text-lg"></i>

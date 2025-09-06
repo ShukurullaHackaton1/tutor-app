@@ -1,512 +1,402 @@
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-import "./map.css";
-import BoxComponent from "./boxComponent";
-import ShimmerLoading from "./loading/loading";
+import MapComponent from "../components/map";
 import { useDispatch, useSelector } from "react-redux";
-import { changeFullPage } from "../store/slice/ui.slice";
-import OptionComponent from "./option.component";
-import axios from "../service/api.js";
+import { changePage } from "../store/slice/ui.slice";
+import { Link } from "react-router-dom";
+import StatisticsService from "../service/statistics.service";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  MdClose,
+  MdPerson,
+  MdLocationOn,
+  MdSchool,
+  MdAttachMoney,
+} from "react-icons/md";
+import ShimmerLoading from "../components/loading/loading";
 
-// CRITICAL: Leaflet icon muammosini hal qilish
-const iconRetinaUrl =
-  "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png";
-const iconUrl =
-  "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png";
-const shadowUrl =
-  "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png";
-
-// Leaflet default iconni to'g'irlash
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl,
-  iconUrl,
-  shadowUrl,
-});
-
-const center = [42.46, 59.61]; // Nukus koordinatalari
-
-const MapComponent = () => {
-  const { isLoading } = useSelector((state) => state.appartment);
-  const statistics = useSelector((state) => state.statistics);
-  const { fullStatisticPage } = useSelector((state) => state.ui);
-  const [state, setState] = useState(false);
-  const [appartmentInfo, setAppartmentModel] = useState({
-    isLoading: false,
-    info: {},
-  });
-
-  const f = new Intl.NumberFormat("es-sp");
-
-  // Default Leaflet iconni yaratish
-  const createCustomIcon = () => {
-    return L.icon({
-      iconUrl: iconUrl,
-      iconRetinaUrl: iconRetinaUrl,
-      shadowUrl: shadowUrl,
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41],
-      shadowAnchor: [12, 41],
-    });
-  };
-
-  // Rangli circle icon yaratish
-  const createColoredIcon = (color, status) => {
-    const size = 30;
-    let emoji = "";
-
-    switch (status) {
-      case "green":
-        emoji = "👨‍🎓";
-        break;
-      case "yellow":
-        emoji = "👨‍🎓";
-        break;
-      case "red":
-        emoji = "👨‍🎓";
-        break;
-      default:
-        emoji = "👨‍🎓";
-    }
-
-    return L.divIcon({
-      className: "custom-div-icon",
-      html: `
-        <div style="
-          background-color: ${color};
-          width: ${size}px;
-          height: ${size}px;
-          border: 3px solid white;
-          border-radius: 50%;
-          box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 12px;
-          position: relative;
-        ">
-          ${emoji}
-        </div>
-      `,
-      iconSize: [size, size],
-      iconAnchor: [size / 2, size / 2],
-      popupAnchor: [0, -size / 2],
-    });
-  };
-
+const MapPage = () => {
   const dispatch = useDispatch();
-  const changeSizePage = () => {
-    dispatch(changeFullPage(!fullStatisticPage));
-  };
+  const { fullStatisticPage } = useSelector((state) => state.ui);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [debugInfo, setDebugInfo] = useState("");
 
   useEffect(() => {
-    setState(false);
+    dispatch(changePage("Xarita"));
+    StatisticsService.getAppartmentsLocation(dispatch);
   }, []);
 
-  const selectStudent = async (id) => {
-    setAppartmentModel({ isLoading: true });
-    setState(true);
-    try {
-      const { data } = await axios.get(`/appartment/student-info/${id}`);
-      console.log(data.data);
-      setAppartmentModel({ isLoading: false, info: data.data });
-    } catch (error) {
-      console.log(error);
-      setAppartmentModel({ isLoading: false });
+  const handleStudentSelect = (studentInfo) => {
+    console.log("🎯 handleStudentSelect called with:", studentInfo);
+
+    // Debug ma'lumotlarini yangilash
+    setDebugInfo(`
+      Received data: ${JSON.stringify(studentInfo, null, 2)}
+      Type: ${typeof studentInfo}
+      Keys: ${studentInfo ? Object.keys(studentInfo) : "null"}
+    `);
+
+    if (studentInfo) {
+      setSelectedStudent(studentInfo);
+      setIsModalOpen(true);
+      console.log("✅ Modal should open now");
+    } else {
+      console.error("❌ No student info provided");
+      alert("Ma'lumot topilmadi!");
     }
   };
 
-  // Debug: Ma'lumotlarni console'da ko'rsatish
-  useEffect(() => {
-    console.log("🗺️ Map Component - Statistics:", statistics);
-    console.log("🗺️ Map data:", statistics.map);
-    if (statistics.map && statistics.map.length > 0) {
-      console.log("🗺️ First marker:", statistics.map[0]);
-      console.log("🗺️ Will render", statistics.map.length, "markers");
-    }
-  }, [statistics.map]);
+  const closeModal = () => {
+    console.log("🔒 Closing modal");
+    setIsModalOpen(false);
+    setSelectedStudent(null);
+    setDebugInfo("");
+  };
+
+  const formatPrice = (price) => {
+    if (!price) return "Noma'lum";
+    return new Intl.NumberFormat("uz-UZ").format(price) + " so'm";
+  };
+
+  // Test function
+  const testModal = () => {
+    const testData = {
+      student: {
+        image:
+          "https://static.vecteezy.com/system/resources/thumbnails/024/983/914/small/simple-user-default-icon-free-png.png",
+        second_name: "Test",
+        first_name: "Student",
+        level: { name: "Bakalavr" },
+        province: { name: "Qoraqalpog'iston" },
+      },
+      appartment: {
+        status: "green",
+        smallDistrict: "20-kichik tuman",
+        priceAppartment: 500000,
+        numberOfStudents: 2,
+        typeOfBoiler: "Ariston kotyol",
+        contract: true,
+      },
+    };
+
+    console.log("🧪 Testing modal with test data");
+    handleStudentSelect(testData);
+  };
 
   return (
-    <BoxComponent>
-      {state ? (
-        <OptionComponent state={state}>
-          <div className="h-100 px-2 overflow-y-scroll overflow-x-hidden">
-            <div className="config">
-              <div className="flex gap-3 items-center">
-                <div
-                  onClick={() => setState(false)}
-                  className="w-[40px] cursor-pointer h-[40px] flex items-center justify-center bg-white rounded-lg"
-                >
-                  <i className="bi bi-arrow-left text-2xl "></i>
-                </div>
-                <div className="text-2xl font-[500]">Talaba</div>
-              </div>
-            </div>
-            <div className="student-info mt-3">
-              <div className="image flex items-center justify-center">
-                {appartmentInfo.isLoading ? (
-                  <ShimmerLoading width="200px" height="200px" />
-                ) : (
-                  <img
-                    src={appartmentInfo.info.student?.image}
-                    className="w-[250px] h-[250px] rounded-xl"
-                    alt=""
-                  />
-                )}
-              </div>
-              <div className="my-3 text-center">
-                {appartmentInfo.isLoading ? (
-                  <ShimmerLoading width="500px" height="40px" />
-                ) : (
-                  <p className="text-3xl font-[500]">
-                    {appartmentInfo.info.student?.second_name}{" "}
-                    {appartmentInfo.info.student?.first_name}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="appartment-info">
-              <div className="status row">
-                <div className="col-4">
-                  {appartmentInfo.isLoading ? (
-                    <ShimmerLoading width="100%" height="100px" />
-                  ) : (
-                    <div
-                      className={`p-4 py-3 border-[1px] ${
-                        appartmentInfo.info.appartment?.status == "green"
-                          ? "border-[#4776E6]"
-                          : "border-[#fff]"
-                      } rounded-lg bg-white`}
-                    >
-                      <div className="text-center text-xl font-[500] ">
-                        Yashil toifa
-                      </div>
-                      <div className="w-100 h-[20px] rounded-md bg-[#24FE41]"></div>
-                    </div>
-                  )}
-                </div>
-                <div className="col-4">
-                  {appartmentInfo.isLoading ? (
-                    <ShimmerLoading width="100%" height="100px" />
-                  ) : (
-                    <div
-                      className={`p-4 py-3 border-[1px] ${
-                        appartmentInfo.info.appartment?.status == "yellow"
-                          ? "border-[#4776E6]"
-                          : "border-[#fff]"
-                      } rounded-lg bg-white`}
-                    >
-                      <div className="text-center text-xl font-[500] ">
-                        Sariq toifa
-                      </div>
-                      <div className="w-100 h-[20px] rounded-md bg-[#FFC837]"></div>
-                    </div>
-                  )}
-                </div>
-                <div className="col-4">
-                  {appartmentInfo.isLoading ? (
-                    <ShimmerLoading width="100%" height="100px" />
-                  ) : (
-                    <div
-                      className={`p-4 py-3 border-[1px] ${
-                        appartmentInfo.info.appartment?.status == "red"
-                          ? "border-[#4776E6]"
-                          : "border-[#fff]"
-                      } rounded-lg bg-white`}
-                    >
-                      <div className="text-center text-xl font-[500] ">
-                        Qizil toifa
-                      </div>
-                      <div className="w-100 h-[20px] rounded-md bg-[#FF512F]"></div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="px-3 mt-3 py-2 bg-white rounded-lg">
-                {appartmentInfo.isLoading ? (
-                  <ShimmerLoading width="100%" height="70px" />
-                ) : (
-                  <div className="bg-white cursor-pointer px-4 py-3 flex items-center justify-between">
-                    <p className="text-xl font-[500]">
-                      {appartmentInfo.info.student?.province?.name}
-                    </p>
-                    <i className="bi bi-chevron-down text-2xl "></i>
-                  </div>
-                )}
-              </div>
-              <div className="px-3 mt-3 py-2 bg-white rounded-lg">
-                {appartmentInfo.isLoading ? (
-                  <ShimmerLoading width="100%" height="70px" />
-                ) : (
-                  <div className="bg-white cursor-pointer px-4 py-3 flex items-center justify-between">
-                    <p className="text-xl font-[500]">
-                      {appartmentInfo.info.appartment?.smallDistrict}
-                    </p>
-                    <i className="bi bi-chevron-down text-2xl "></i>
-                  </div>
-                )}
-              </div>
-              <div className="px-3 mt-3 py-2 bg-white rounded-lg">
-                {appartmentInfo.isLoading ? (
-                  <ShimmerLoading width="100%" height="70px" />
-                ) : (
-                  <div className="bg-white cursor-pointer px-4 py-3 flex items-center justify-between">
-                    <p className="text-xl font-[500]">
-                      {appartmentInfo.info.student?.level?.name}
-                    </p>
-                    <i className="bi bi-chevron-down text-2xl "></i>
-                  </div>
-                )}
-              </div>
-              <div className="px-3 mt-3 py-2 bg-white rounded-lg">
-                {appartmentInfo.isLoading ? (
-                  <ShimmerLoading width="100%" height="70px" />
-                ) : (
-                  <div className="bg-white cursor-pointer px-4 py-3 flex items-center justify-between">
-                    <p className="text-xl font-[500]">Ijara narxi (sum)</p>
-                    <div className="text-xl font-[500]">
-                      {f.format(
-                        appartmentInfo.info.appartment?.priceAppartment
-                      )}{" "}
-                      sum
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="px-3 mt-3 py-2 bg-white rounded-lg">
-                {appartmentInfo.isLoading ? (
-                  <ShimmerLoading width="100%" height="70px" />
-                ) : (
-                  <div className="bg-white cursor-pointer px-4 py-3 flex items-center justify-between">
-                    <p className="text-xl font-[500]">
-                      {appartmentInfo.info.appartment?.numberOfStudents} ta
-                      talaba
-                    </p>
-                    <div className="text-xl font-[500]">
-                      <i className="bi bi-chevron-down text-2xl "></i>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="px-3 mt-3 py-2 bg-white rounded-lg">
-                {appartmentInfo.isLoading ? (
-                  <ShimmerLoading width="100%" height="70px" />
-                ) : (
-                  <div className="bg-white cursor-pointer px-4 py-3 flex items-center justify-between">
-                    <p className="text-xl font-[500]">
-                      {appartmentInfo.info.appartment?.typeOfBoiler}
-                    </p>
-                    <div className="text-xl font-[500]">
-                      <i className="bi bi-chevron-down text-2xl "></i>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="px-3 mt-3 py-2 bg-white rounded-lg">
-                {appartmentInfo.isLoading ? (
-                  <ShimmerLoading width="100%" height="70px" />
-                ) : (
-                  <div className="bg-white cursor-pointer px-4 py-3 flex items-center justify-between">
-                    <p className="text-xl font-[500]">Ijara shartnomasi</p>
-                    <div className="text-xl font-[500]">
-                      {appartmentInfo.info.appartment?.contract
-                        ? "Bor"
-                        : "Yo'q"}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </OptionComponent>
-      ) : null}
-
-      <div className="flex items-center justify-between mb-4">
-        <div className="title text-[20px] font-[500]">
-          Xarita{" "}
-          {statistics.map
-            ? `(${statistics.map.length} ta marker)`
-            : "(ma'lumot yo'q)"}
-        </div>
-        <button className="btn bg-[#255ED6]" onClick={() => changeSizePage()}>
-          <i
-            className={`bi text-[20px] text-[#fff] ${
-              fullStatisticPage
-                ? "bi-arrows-angle-contract"
-                : "bi-arrows-angle-expand"
-            }`}
-          ></i>
+    <div className="relative">
+      {/* Debug Panel */}
+      <div className="fixed top-4 right-4 bg-yellow-100 p-4 rounded-lg shadow-lg z-40 max-w-md">
+        <h4 className="font-bold mb-2">Debug Info:</h4>
+        <p className="text-sm mb-2">Modal Open: {isModalOpen ? "Yes" : "No"}</p>
+        <p className="text-sm mb-2">
+          Selected Student: {selectedStudent ? "Yes" : "No"}
+        </p>
+        <button
+          onClick={testModal}
+          className="bg-blue-500 text-white px-3 py-1 rounded text-sm mb-2"
+        >
+          Test Modal
         </button>
+        <pre className="text-xs bg-white p-2 rounded max-h-32 overflow-auto">
+          {debugInfo}
+        </pre>
       </div>
+      {/* Breadcrumb */}
+      {fullStatisticPage ? (
+        ""
+      ) : (
+        <>
+          <Link className="text-primary">Xarita</Link>
+          <i className="bi bi-chevron-right"></i>
+        </>
+      )}{" "}
+      <div className="py-2"></div>
+      {/* Map Component */}
+      <MapComponent onStudentSelect={handleStudentSelect} />
+      {/* Global Student Info Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 z-50"
+              onClick={closeModal}
+            />
 
-      {/* CRITICAL: Map container uchun aniq o'lchamlar */}
-      <div
-        className="rounded-lg overflow-hidden bg-gray-200 border-2 border-blue-300"
-        style={{
-          height: "450px",
-          width: "100%",
-          minHeight: "450px",
-          position: "relative",
-        }}
-      >
-        {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <ShimmerLoading height="600px" width="100%" />
-          </div>
-        ) : (
-          <div style={{ height: "100%", width: "100%" }}>
-            {/* Debug ma'lumotlari */}
-            <div
-              style={{
-                position: "absolute",
-                top: "10px",
-                left: "10px",
-                background: "rgba(255,255,255,0.9)",
-                padding: "10px",
-                borderRadius: "5px",
-                zIndex: 1000,
-                fontSize: "12px",
-              }}
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 50 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
             >
-              <div>🗺️ Map Status:</div>
-              <div>• Loading: {isLoading ? "Yes" : "No"}</div>
-              <div>
-                • Data: {statistics.map ? statistics.map.length : 0} markers
-              </div>
-              <div>
-                • Center: [{center[0]}, {center[1]}]
-              </div>
-            </div>
-
-            <MapContainer
-              center={center}
-              zoom={12}
-              style={{
-                height: "100%",
-                width: "100%",
-                backgroundColor: "#f0f0f0",
-              }}
-              scrollWheelZoom={true}
-              zoomControl={true}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              />
-
-              {/* Test marker - har doim ko'rinishi kerak */}
-              <Marker position={[42.46, 59.61]} icon={createCustomIcon()}>
-                <Popup>
-                  <div>
-                    <strong>🏛️ Test Marker</strong>
-                    <br />
-                    Nukus shahri markazi
-                    <br />
-                    Lat: 42.46, Lng: 59.61
-                    <br />
-                    <small>Agar bu ko'rinsa, Leaflet ishlayapti!</small>
+              <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-purple-600">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-white bg-opacity-20 rounded-lg">
+                      <MdPerson className="text-white" size={24} />
+                    </div>
+                    <h2 className="text-xl font-semibold text-white">
+                      Talaba ma'lumotlari
+                    </h2>
                   </div>
-                </Popup>
-              </Marker>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={closeModal}
+                    className="p-2 rounded-lg bg-white bg-opacity-20 text-white hover:bg-opacity-30 transition-all"
+                  >
+                    <MdClose size={20} />
+                  </motion.button>
+                </div>
 
-              {/* Haqiqiy markerlar */}
-              {statistics.map &&
-                statistics.map.length > 0 &&
-                statistics.map.map((marker, index) => {
-                  console.log(
-                    `🔄 Rendering marker ${index + 1}/${
-                      statistics.map.length
-                    }:`,
-                    marker
-                  );
+                {/* Content */}
+                <div className="p-6">
+                  {selectedStudent ? (
+                    <>
+                      {/* Debug Info in Modal */}
+                      <div className="bg-gray-100 p-3 rounded mb-4 text-xs">
+                        <strong>Debug:</strong> Student data loaded successfully
+                        <br />
+                        Student name: {
+                          selectedStudent.student?.second_name
+                        }{" "}
+                        {selectedStudent.student?.first_name}
+                        <br />
+                        Status: {selectedStudent.appartment?.status}
+                      </div>
 
-                  // Koordinatalar mavjudligini tekshirish
-                  if (
-                    !marker.coords ||
-                    !Array.isArray(marker.coords) ||
-                    marker.coords.length !== 2 ||
-                    isNaN(marker.coords[0]) ||
-                    isNaN(marker.coords[1])
-                  ) {
-                    console.warn(
-                      `❌ Invalid coordinates for marker ${index}:`,
-                      marker
-                    );
-                    return null;
-                  }
-
-                  return (
-                    <Marker
-                      key={`marker-${index}-${marker.appartmentId}`}
-                      position={[marker.coords[0], marker.coords[1]]}
-                      icon={createColoredIcon(marker.color, marker.status)}
-                      eventHandlers={{
-                        click: () => {
-                          console.log("🖱️ Marker clicked:", marker);
-                          if (marker.appartmentId) {
-                            selectStudent(marker.appartmentId);
-                          }
-                        },
-                      }}
-                    >
-                      <Popup>
-                        <div style={{ padding: "5px" }}>
-                          <p style={{ margin: "5px 0", fontWeight: "bold" }}>
-                            <strong>Status:</strong>
-                            <span
-                              style={{
-                                color: marker.color,
-                                marginLeft: "5px",
-                                textTransform: "capitalize",
-                              }}
-                            >
-                              {marker.status}
-                            </span>
-                          </p>
-                          <p style={{ margin: "5px 0" }}>
-                            <strong>ID:</strong> {marker.appartmentId}
-                          </p>
-                          <p style={{ margin: "5px 0" }}>
-                            <strong>Koordinatlar:</strong>
-                            <br />
-                            Lat: {marker.coords[0]}
-                            <br />
-                            Lng: {marker.coords[1]}
-                          </p>
-                          {marker.studentId && (
-                            <p style={{ margin: "5px 0" }}>
-                              <strong>Student ID:</strong> {marker.studentId}
-                            </p>
-                          )}
-                          <button
-                            style={{
-                              marginTop: "10px",
-                              padding: "5px 10px",
-                              backgroundColor: marker.color,
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
+                      {/* Student Info */}
+                      <div className="mb-6">
+                        <div className="flex items-center justify-center mb-4">
+                          <img
+                            src={
+                              selectedStudent.student?.image ||
+                              "https://static.vecteezy.com/system/resources/thumbnails/024/983/914/small/simple-user-default-icon-free-png.png"
+                            }
+                            className="w-32 h-32 rounded-full object-cover border-4 border-blue-200 shadow-lg"
+                            alt="Student"
+                            onError={(e) => {
+                              e.target.src =
+                                "https://static.vecteezy.com/system/resources/thumbnails/024/983/914/small/simple-user-default-icon-free-png.png";
                             }}
-                            onClick={() => selectStudent(marker.appartmentId)}
-                          >
-                            Batafsil ma'lumot
-                          </button>
+                          />
                         </div>
-                      </Popup>
-                    </Marker>
-                  );
-                })}
-            </MapContainer>
-          </div>
+
+                        <div className="text-center mb-6">
+                          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                            {selectedStudent.student?.second_name || "Noma'lum"}{" "}
+                            {selectedStudent.student?.first_name || ""}
+                          </h3>
+                          <p className="text-gray-600">
+                            {selectedStudent.student?.level?.name || "Noma'lum"}
+                          </p>
+                        </div>
+
+                        {/* Status Cards */}
+                        <div className="grid grid-cols-3 gap-4 mb-6">
+                          <div
+                            className={`p-4 rounded-lg text-center ${
+                              selectedStudent.appartment?.status === "green"
+                                ? "bg-green-100 border-2 border-green-500"
+                                : "bg-gray-100 border-2 border-gray-300"
+                            }`}
+                          >
+                            <div className="w-full h-4 rounded-md bg-green-500 mb-2"></div>
+                            <p className="text-sm font-medium">Yaxshi holat</p>
+                          </div>
+
+                          <div
+                            className={`p-4 rounded-lg text-center ${
+                              selectedStudent.appartment?.status === "yellow"
+                                ? "bg-yellow-100 border-2 border-yellow-500"
+                                : "bg-gray-100 border-2 border-gray-300"
+                            }`}
+                          >
+                            <div className="w-full h-4 rounded-md bg-yellow-500 mb-2"></div>
+                            <p className="text-sm font-medium">
+                              O'rtacha holat
+                            </p>
+                          </div>
+
+                          <div
+                            className={`p-4 rounded-lg text-center ${
+                              selectedStudent.appartment?.status === "red"
+                                ? "bg-red-100 border-2 border-red-500"
+                                : "bg-gray-100 border-2 border-gray-300"
+                            }`}
+                          >
+                            <div className="w-full h-4 rounded-md bg-red-500 mb-2"></div>
+                            <p className="text-sm font-medium">Yomon holat</p>
+                          </div>
+                        </div>
+
+                        {/* Detailed Info Cards */}
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <MdLocationOn
+                                  className="text-blue-500"
+                                  size={20}
+                                />
+                                <span className="font-medium text-gray-800">
+                                  Viloyat
+                                </span>
+                              </div>
+                              <span className="text-gray-600">
+                                {selectedStudent.student?.province?.name ||
+                                  "Noma'lum"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <MdLocationOn
+                                  className="text-green-500"
+                                  size={20}
+                                />
+                                <span className="font-medium text-gray-800">
+                                  Kichik tuman
+                                </span>
+                              </div>
+                              <span className="text-gray-600">
+                                {selectedStudent.appartment?.smallDistrict ||
+                                  "Noma'lum"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <MdSchool
+                                  className="text-purple-500"
+                                  size={20}
+                                />
+                                <span className="font-medium text-gray-800">
+                                  Ta'lim bosqichi
+                                </span>
+                              </div>
+                              <span className="text-gray-600">
+                                {selectedStudent.student?.level?.name ||
+                                  "Noma'lum"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <MdAttachMoney
+                                  className="text-green-600"
+                                  size={20}
+                                />
+                                <span className="font-medium text-gray-800">
+                                  Ijara narxi
+                                </span>
+                              </div>
+                              <span className="text-gray-600 font-semibold">
+                                {formatPrice(
+                                  selectedStudent.appartment?.priceAppartment
+                                )}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <MdPerson
+                                  className="text-orange-500"
+                                  size={20}
+                                />
+                                <span className="font-medium text-gray-800">
+                                  Talabalar soni
+                                </span>
+                              </div>
+                              <span className="text-gray-600">
+                                {selectedStudent.appartment?.numberOfStudents ||
+                                  0}{" "}
+                                ta talaba
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <span className="text-blue-500">🔥</span>
+                                <span className="font-medium text-gray-800">
+                                  Isitish uskunasi
+                                </span>
+                              </div>
+                              <span className="text-gray-600">
+                                {selectedStudent.appartment?.typeOfBoiler ||
+                                  "Noma'lum"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <span className="text-green-500">📄</span>
+                                <span className="font-medium text-gray-800">
+                                  Ijara shartnomasi
+                                </span>
+                              </div>
+                              <span
+                                className={`px-2 py-1 rounded-full text-sm font-medium ${
+                                  selectedStudent.appartment?.contract
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {selectedStudent.appartment?.contract
+                                  ? "Bor"
+                                  : "Yo'q"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                      <p className="text-gray-500">
+                        Ma'lumotlar yuklanmoqda...
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="p-6 border-t border-gray-200 bg-gray-50">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={closeModal}
+                    className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                  >
+                    Yopish
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
-      </div>
-    </BoxComponent>
+      </AnimatePresence>
+    </div>
   );
 };
 
-export default MapComponent;
+export default MapPage;

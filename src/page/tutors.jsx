@@ -31,12 +31,9 @@ const Tutors = () => {
 
   const [openCreateSide, setOpenCreateSide] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
-  const [openAddGroupModal, setOpenAddGroupModal] = useState(false);
   const [openStudentsModal, setOpenStudentsModal] = useState(false);
   const [editingTutor, setEditingTutor] = useState(null);
-  const [addingGroupToTutor, setAddingGroupToTutor] = useState(null);
-  const [selectedGroupForStudents, setSelectedGroupForStudents] =
-    useState(null);
+  const [selectedGroupForStudents, setSelectedGroupForStudents] = useState(null);
   const [groupStudents, setGroupStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
 
@@ -76,7 +73,6 @@ const Tutors = () => {
   });
 
   const [selectGroups, setSelectGroups] = useState([]);
-  const [addingGroups, setAddingGroups] = useState([]);
 
   useEffect(() => {
     dispatch(changePage("Tutorlar"));
@@ -114,7 +110,7 @@ const Tutors = () => {
     setEditLastname(tutor.name.split(" ").slice(1).join(" ") || "");
     setEditPhone(tutor.phone || "");
     setEditLogin(tutor.login || "");
-    setEditPassword(tutor.password || ""); // YANGI: Hozirgi parolni ko'rsatish
+    setEditPassword(tutor.password || "");
     setEditThumbnailImage(
       tutor.image ||
         "https://static.vecteezy.com/system/resources/thumbnails/024/983/914/small/simple-user-default-icon-free-png.png"
@@ -122,7 +118,7 @@ const Tutors = () => {
     setOpenEditModal(true);
   };
 
-  // Guruh studentlarini yuklash
+  // Guruh studentlarini yuklash (buni ham qo'shamiz)
   const loadGroupStudents = async (groupName) => {
     setLoadingStudents(true);
     try {
@@ -143,6 +139,13 @@ const Tutors = () => {
     } finally {
       setLoadingStudents(false);
     }
+  };
+
+  // YANGI: Guruh studentlarini ko'rish uchun modal ochish
+  const openGroupStudentsModal = (group) => {
+    setSelectedGroupForStudents(group);
+    loadGroupStudents(group.name || group);
+    setOpenStudentsModal(true);
   };
 
   // State'larni tozalash funksiyasi
@@ -276,7 +279,6 @@ const Tutors = () => {
     formData.append("phone", editPhone);
     formData.append("login", editLogin);
 
-    // YANGI: Password ham yuborish
     if (editPassword) {
       formData.append("password", editPassword);
     }
@@ -621,7 +623,9 @@ const Tutors = () => {
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
                     <MdGroup className="text-purple-500" />
-                    <span>{selectedGroupForStudents?.name} - Studentlar</span>
+                    <span>
+                      {selectedGroupForStudents?.name || selectedGroupForStudents} - Studentlar
+                    </span>
                   </h3>
                   <motion.button
                     whileHover={{ scale: 1.1 }}
@@ -1065,30 +1069,46 @@ const Tutors = () => {
                                 {item.educationLang?.name}
                               </p>
                             </div>
-                            {openCreateSide && (
-                              <div
-                                className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
-                                  selectGroups.find((c) => c.code == item.id)
-                                    ? "border-blue-500 bg-blue-500"
-                                    : "border-gray-300"
-                                }`}
+                            <div className="flex items-center space-x-2">
+                              {/* YANGI: Ko'z iconi barcha guruhlar uchun */}
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openGroupStudentsModal(item.name);
+                                }}
+                                className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                                title="Studentlarni ko'rish"
                               >
-                                {selectGroups.find(
-                                  (c) => c.code == item.id
-                                ) && (
-                                  <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{
-                                      type: "spring",
-                                      stiffness: 400,
-                                    }}
-                                  >
-                                    <MdCheck className="text-white text-sm" />
-                                  </motion.div>
-                                )}
-                              </div>
-                            )}
+                                <MdVisibility size={16} />
+                              </motion.button>
+                              
+                              {openCreateSide && (
+                                <div
+                                  className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
+                                    selectGroups.find((c) => c.code == item.id)
+                                      ? "border-blue-500 bg-blue-500"
+                                      : "border-gray-300"
+                                  }`}
+                                >
+                                  {selectGroups.find(
+                                    (c) => c.code == item.id
+                                  ) && (
+                                    <motion.div
+                                      initial={{ scale: 0 }}
+                                      animate={{ scale: 1 }}
+                                      transition={{
+                                        type: "spring",
+                                        stiffness: 400,
+                                      }}
+                                    >
+                                      <MdCheck className="text-white text-sm" />
+                                    </motion.div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </motion.div>
                       ))}
