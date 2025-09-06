@@ -21,7 +21,7 @@ const BoilerTypestatistics = () => {
   const dispatch = useDispatch();
 
   const data = statistics.boilerTypes.map((item) => ({
-    name: item.title.length > 15 ? item.title.slice(0, 15) + "..." : item.title,
+    name: item.title,
     fullName: item.title,
     count: item.total,
   }));
@@ -191,7 +191,7 @@ const BoilerTypestatistics = () => {
             <div className="text-2xl font-bold text-blue-600">
               {statistics.boilerTypes
                 .reduce((sum, item) => sum + item.total, 0)
-                .toLocaleString()}
+                ?.toLocaleString()}
             </div>
             <div className="text-gray-600">Jami talabalar</div>
           </div>
@@ -243,7 +243,7 @@ const BoilerTypestatistics = () => {
                     <YAxis dataKey="name" type="category" width={150} />
                     <Tooltip
                       formatter={(value, name, props) => [
-                        value.toLocaleString(),
+                        value?.toLocaleString(),
                         "Talabalar soni",
                       ]}
                       labelFormatter={(label, payload) => {
@@ -271,7 +271,7 @@ const BoilerTypestatistics = () => {
                 Eng mashhur uskunalar
               </h4>
               <div className="space-y-3">
-                {statistics.boilerTypes
+                {[...statistics.boilerTypes]
                   .sort((a, b) => b.total - a.total)
                   .slice(0, 3)
                   .map((item, index) => (
@@ -295,7 +295,7 @@ const BoilerTypestatistics = () => {
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-green-600">
-                          {item.total.toLocaleString()}
+                          {item.total?.toLocaleString()}
                         </div>
                         <div className="text-sm text-gray-500">
                           {(
@@ -319,7 +319,7 @@ const BoilerTypestatistics = () => {
                 Kam ishlatiladigan uskunalar
               </h4>
               <div className="space-y-3">
-                {statistics.boilerTypes
+                {[...statistics.boilerTypes]
                   .sort((a, b) => a.total - b.total)
                   .slice(0, 3)
                   .map((item, index) => (
@@ -335,7 +335,7 @@ const BoilerTypestatistics = () => {
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-orange-600">
-                          {item.total.toLocaleString()}
+                          {item.total?.toLocaleString()}
                         </div>
                         <div className="text-sm text-gray-500">
                           {(
@@ -383,7 +383,7 @@ const BoilerTypestatistics = () => {
                 </tr>
               </thead>
               <tbody>
-                {statistics.boilerTypes
+                {[...statistics.boilerTypes]
                   .sort((a, b) => b.total - a.total)
                   .map((item, index) => (
                     <tr
@@ -397,7 +397,7 @@ const BoilerTypestatistics = () => {
                         {item.title}
                       </td>
                       <td className="px-4 py-2 text-center text-blue-600 font-bold">
-                        {item.total.toLocaleString()}
+                        {item.total?.toLocaleString()}
                       </td>
                       <td className="px-4 py-2 text-center">
                         <span
@@ -435,16 +435,16 @@ const BoilerTypestatistics = () => {
                       <td className="px-4 py-2 text-center">
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            item.title.includes("yo'q")
+                            item.title?.includes("yo'q")
                               ? "bg-red-100 text-red-800"
-                              : item.title.includes("Ariston")
+                              : item.title?.includes("Ariston")
                               ? "bg-green-100 text-green-800"
                               : "bg-blue-100 text-blue-800"
                           }`}
                         >
-                          {item.title.includes("yo'q")
+                          {item.title?.includes("yo'q")
                             ? "Yo'q"
-                            : item.title.includes("Ariston")
+                            : item.title?.includes("Ariston")
                             ? "Premium"
                             : "Oddiy"}
                         </span>

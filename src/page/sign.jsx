@@ -15,6 +15,7 @@ import { MdLock, MdPerson, MdSchool } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import AdminService from "../service/admin.service";
+import { Logo } from "../images";
 
 const { Title, Text } = Typography;
 
@@ -82,9 +83,9 @@ const ModernSign = () => {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                  className="w-20 h-20 bg-white bg-opacity-20 rounded-3xl flex items-center justify-center mx-auto lg:mx-0"
+                  className="w-40 h-40 p-4 overflow-hidden bg-white bg-opacity-20 rounded-3xl flex items-center justify-center mx-auto lg:mx-0"
                 >
-                  <MdSchool size={40} />
+                  <img src={Logo} alt="" />
                 </motion.div>
 
                 <div>
