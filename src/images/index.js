@@ -1,1 +1,1 @@
-export { default as Logo } from "./qmu-logo.webp";
+export { default as Logo } from "./ndpi-logo.png";

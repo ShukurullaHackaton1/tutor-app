@@ -241,7 +241,7 @@ const Layout = ({ activePage }) => {
                     alt=""
                   />
                   <h1 className="text-md font-semibold">
-                    QARAQALPAQ MÁMLEKETLIK UNIVERSITETI
+                    ÁJINIYAZ ATÍNDAǴÍ NÓKIS MÁMLEKETLIK PEDAGOGIKALÍQ INSTITUTÍ
                   </h1>
                 </motion.div>
 
