@@ -5,6 +5,7 @@ import L from "leaflet";
 import "./map.css";
 import BoxComponent from "./boxComponent";
 import ShimmerLoading from "./loading/loading";
+import StudentDetailSidebar from "./StudentDetailSidebar";
 import { useDispatch, useSelector } from "react-redux";
 import { changeFullPage } from "../store/slice/ui.slice";
 import axios from "../service/api.js";
@@ -33,6 +34,11 @@ const MapComponent = ({ onStudentSelect }) => {
   const { fullStatisticPage } = useSelector((state) => state.ui);
   const dispatch = useDispatch();
 
+  // Sidebar uchun state-lar
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [studentLoading, setStudentLoading] = useState(false);
+
   // Default Leaflet iconni yaratish
   const createCustomIcon = () => {
     return L.icon({
@@ -47,7 +53,7 @@ const MapComponent = ({ onStudentSelect }) => {
     });
   };
 
-  // Rangli circle icon yaratish
+  // Rangli circle icon yaratish (TUZATILDI)
   const createColoredIcon = (color, status) => {
     const size = 30;
     let emoji = "";
@@ -81,6 +87,7 @@ const MapComponent = ({ onStudentSelect }) => {
           justify-content: center;
           font-size: 12px;
           position: relative;
+          cursor: pointer;
         ">
           ${emoji}
         </div>
@@ -98,14 +105,47 @@ const MapComponent = ({ onStudentSelect }) => {
   // Student ma'lumotlarini olish
   const getStudentInfo = async (appartmentId) => {
     try {
+      setStudentLoading(true);
+      console.log("🔍 Student ma'lumotlarini olish:", appartmentId);
+
       const { data } = await axios.get(
         `/appartment/student-info/${appartmentId}`
       );
+
+      console.log("✅ Student ma'lumotlari olindi:", data.data);
       return data.data;
     } catch (error) {
-      console.error("Student ma'lumotlarini olishda xatolik:", error);
+      console.error("❌ Student ma'lumotlarini olishda xatolik:", error);
       return null;
+    } finally {
+      setStudentLoading(false);
     }
+  };
+
+  // Marker bosilganda chaqiriladigan funksiya
+  const handleMarkerClick = async (marker) => {
+    console.log("🖱️ Marker clicked:", marker);
+
+    if (marker.appartmentId) {
+      setSidebarOpen(true); // Sidebarni ochish
+      const studentInfo = await getStudentInfo(marker.appartmentId);
+      if (studentInfo) {
+        setSelectedStudent(studentInfo);
+        // Agar onStudentSelect prop berilgan bo'lsa, uni ham chaqiramiz
+        if (onStudentSelect) {
+          onStudentSelect(studentInfo);
+        }
+      }
+    }
+  };
+
+  // Sidebar yopish
+  const handleCloseSidebar = () => {
+    setSidebarOpen(false);
+    // Biroz kutgandan keyin ma'lumotlarni tozalash (animatsiya tugashini kutish)
+    setTimeout(() => {
+      setSelectedStudent(null);
+    }, 300);
   };
 
   // Debug: Ma'lumotlarni console'da ko'rsatish
@@ -119,195 +159,202 @@ const MapComponent = ({ onStudentSelect }) => {
   }, [statistics.map]);
 
   return (
-    <BoxComponent>
-      <div className="flex items-center justify-between mb-4">
-        <div className="title text-[20px] font-[500]">
-          Xarita{" "}
-          {statistics.map
-            ? `(${statistics.map.length} ta marker)`
-            : "(ma'lumot yo'q)"}
-        </div>
-        <button className="btn bg-[#255ED6]" onClick={() => changeSizePage()}>
-          <i
-            className={`bi text-[20px] text-[#fff] ${
-              fullStatisticPage
-                ? "bi-arrows-angle-contract"
-                : "bi-arrows-angle-expand"
-            }`}
-          ></i>
-        </button>
-      </div>
-
-      {/* CRITICAL: Map container uchun aniq o'lchamlar */}
-      <div
-        className="rounded-lg overflow-hidden bg-gray-200 border-2 border-blue-300"
-        style={{
-          height: "450px",
-          width: "100%",
-          minHeight: "450px",
-          position: "relative",
-        }}
-      >
-        {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <ShimmerLoading height="600px" width="100%" />
+    <>
+      <BoxComponent>
+        <div className="flex items-center justify-between mb-4">
+          <div className="title text-[20px] font-[500]">
+            Xarita{" "}
+            {statistics.map
+              ? `(${statistics.map.length} ta marker)`
+              : "(ma'lumot yo'q)"}
           </div>
-        ) : (
-          <div style={{ height: "100%", width: "100%" }}>
-            {/* Debug ma'lumotlari */}
-            <div
-              style={{
-                position: "absolute",
-                top: "10px",
-                left: "10px",
-                background: "rgba(255,255,255,0.9)",
-                padding: "10px",
-                borderRadius: "5px",
-                zIndex: 1000,
-                fontSize: "12px",
-              }}
-            >
-              <div>🗺️ Map Status:</div>
-              <div>• Loading: {isLoading ? "Yes" : "No"}</div>
-              <div>
-                • Data: {statistics.map ? statistics.map.length : 0} markers
-              </div>
-              <div>
-                • Center: [{center[0]}, {center[1]}]
-              </div>
+          <button className="btn bg-[#255ED6]" onClick={() => changeSizePage()}>
+            <i
+              className={`bi text-[20px] text-[#fff] ${
+                fullStatisticPage
+                  ? "bi-arrows-angle-contract"
+                  : "bi-arrows-angle-expand"
+              }`}
+            ></i>
+          </button>
+        </div>
+
+        {/* CRITICAL: Map container uchun aniq o'lchamlar */}
+        <div
+          className="rounded-lg overflow-hidden bg-gray-200 border-2 border-blue-300"
+          style={{
+            height: "450px",
+            width: "100%",
+            minHeight: "450px",
+            position: "relative",
+          }}
+        >
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <ShimmerLoading height="600px" width="100%" />
             </div>
+          ) : (
+            <div style={{ height: "100%", width: "100%" }}>
+              {/* Debug ma'lumotlari */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: "10px",
+                  left: "10px",
+                  background: "rgba(255,255,255,0.9)",
+                  padding: "10px",
+                  borderRadius: "5px",
+                  zIndex: 1000,
+                  fontSize: "12px",
+                }}
+              >
+                <div>🗺️ Map Status:</div>
+                <div>• Loading: {isLoading ? "Yes" : "No"}</div>
+                <div>
+                  • Data: {statistics.map ? statistics.map.length : 0} markers
+                </div>
+                <div>
+                  • Center: [{center[0]}, {center[1]}]
+                </div>
+                <div>• Sidebar: {sidebarOpen ? "Open" : "Closed"}</div>
+              </div>
 
-            <MapContainer
-              center={center}
-              zoom={12}
-              style={{
-                height: "100%",
-                width: "100%",
-                backgroundColor: "#f0f0f0",
-              }}
-              scrollWheelZoom={true}
-              zoomControl={true}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              />
+              <MapContainer
+                center={center}
+                zoom={12}
+                style={{
+                  height: "100%",
+                  width: "100%",
+                  zIndex: "10",
+                  backgroundColor: "#f0f0f0",
+                }}
+                scrollWheelZoom={true}
+                zoomControl={true}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
 
-              {/* Test marker - har doim ko'rinishi kerak */}
-              <Marker position={[42.46, 59.61]} icon={createCustomIcon()}>
-                <Popup>
-                  <div>
-                    <strong>🏛️ Test Marker</strong>
-                    <br />
-                    Nukus shahri markazi
-                    <br />
-                    Lat: 42.46, Lng: 59.61
-                    <br />
-                    <small>Agar bu ko'rinsa, Leaflet ishlayapti!</small>
-                  </div>
-                </Popup>
-              </Marker>
+                {/* Test marker - har doim ko'rinishi kerak */}
+                <Marker position={[42.46, 59.61]} icon={createCustomIcon()}>
+                  <Popup>
+                    <div>
+                      <strong>🏛️ Test Marker</strong>
+                      <br />
+                      Nukus shahri markazi
+                      <br />
+                      Lat: 42.46, Lng: 59.61
+                      <br />
+                      <small>Agar bu ko'rinsa, Leaflet ishlayapti!</small>
+                    </div>
+                  </Popup>
+                </Marker>
 
-              {/* Haqiqiy markerlar */}
-              {statistics.map &&
-                statistics.map.length > 0 &&
-                statistics.map.map((marker, index) => {
-                  console.log(
-                    `🔄 Rendering marker ${index + 1}/${
-                      statistics.map.length
-                    }:`,
-                    marker
-                  );
-
-                  // Koordinatalar mavjudligini tekshirish
-                  if (
-                    !marker.coords ||
-                    !Array.isArray(marker.coords) ||
-                    marker.coords.length !== 2 ||
-                    isNaN(marker.coords[0]) ||
-                    isNaN(marker.coords[1])
-                  ) {
-                    console.warn(
-                      `❌ Invalid coordinates for marker ${index}:`,
+                {/* Haqiqiy markerlar */}
+                {statistics.map &&
+                  statistics.map.length > 0 &&
+                  statistics.map.map((marker, index) => {
+                    console.log(
+                      `🔄 Rendering marker ${index + 1}/${
+                        statistics.map.length
+                      }:`,
                       marker
                     );
-                    return null;
-                  }
 
-                  return (
-                    <Marker
-                      key={`marker-${index}-${marker.appartmentId}`}
-                      position={[marker.coords[0], marker.coords[1]]}
-                      icon={createColoredIcon(marker.color, marker.status)}
-                    >
-                      <Popup>
-                        <div style={{ padding: "10px", minWidth: "200px" }}>
-                          {/* Qisqacha ma'lumot */}
-                          <div className="mb-3">
-                            <p style={{ margin: "5px 0", fontWeight: "bold" }}>
-                              <strong>Status:</strong>
-                              <span
-                                style={{
-                                  color: marker.color,
-                                  marginLeft: "5px",
-                                  textTransform: "capitalize",
-                                }}
+                    // Koordinatalar mavjudligini tekshirish
+                    if (
+                      !marker.coords ||
+                      !Array.isArray(marker.coords) ||
+                      marker.coords.length !== 2 ||
+                      isNaN(marker.coords[0]) ||
+                      isNaN(marker.coords[1])
+                    ) {
+                      console.warn(
+                        `❌ Invalid coordinates for marker ${index}:`,
+                        marker
+                      );
+                      return null;
+                    }
+
+                    return (
+                      <Marker
+                        key={`marker-${index}-${marker.appartmentId}`}
+                        position={[marker.coords[0], marker.coords[1]]}
+                        icon={createColoredIcon(marker.color, marker.status)}
+                        eventHandlers={{
+                          click: () => handleMarkerClick(marker),
+                        }}
+                      >
+                        <Popup>
+                          <div style={{ padding: "10px", minWidth: "200px" }}>
+                            {/* Qisqacha ma'lumot */}
+                            <div className="mb-3">
+                              <p
+                                style={{ margin: "5px 0", fontWeight: "bold" }}
                               >
-                                {marker.status === "green"
-                                  ? "Yaxshi"
-                                  : marker.status === "yellow"
-                                  ? "O'rtacha"
-                                  : marker.status === "red"
-                                  ? "Yomon"
-                                  : "Tekshirilmoqda"}
-                              </span>
-                            </p>
-                            <p style={{ margin: "5px 0" }}>
-                              <strong>Koordinatlar:</strong>
-                              <br />
-                              Lat: {marker.coords[0]}
-                              <br />
-                              Lng: {marker.coords[1]}
-                            </p>
-                          </div>
+                                <strong>Status:</strong>
+                                <span
+                                  style={{
+                                    color: marker.color,
+                                    marginLeft: "5px",
+                                    textTransform: "capitalize",
+                                  }}
+                                >
+                                  {marker.status === "green"
+                                    ? "Yaxshi"
+                                    : marker.status === "yellow"
+                                    ? "O'rtacha"
+                                    : marker.status === "red"
+                                    ? "Yomon"
+                                    : "Tekshirilmoqda"}
+                                </span>
+                              </p>
+                              <p style={{ margin: "5px 0" }}>
+                                <strong>Koordinatlar:</strong>
+                                <br />
+                                Lat: {marker.coords[0]}
+                                <br />
+                                Lng: {marker.coords[1]}
+                              </p>
+                            </div>
 
-                          {/* Batafsil ma'lumot tugmasi */}
-                          <button
-                            style={{
-                              width: "100%",
-                              padding: "8px 12px",
-                              backgroundColor: marker.color,
-                              color: "white",
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: "pointer",
-                              fontSize: "14px",
-                              fontWeight: "500",
-                            }}
-                            onClick={async () => {
-                              console.log("🖱️ Marker clicked:", marker);
-                              if (marker.appartmentId && onStudentSelect) {
-                                const studentInfo = await getStudentInfo(
-                                  marker.appartmentId
-                                );
-                                if (studentInfo) {
-                                  onStudentSelect(studentInfo);
-                                }
-                              }
-                            }}
-                          >
-                            Batafsil ma'lumot
-                          </button>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  );
-                })}
-            </MapContainer>
-          </div>
-        )}
-      </div>
-    </BoxComponent>
+                            {/* Batafsil ma'lumot tugmasi */}
+                            <button
+                              style={{
+                                width: "100%",
+                                padding: "8px 12px",
+                                backgroundColor: marker.color,
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: "500",
+                              }}
+                              onClick={() => handleMarkerClick(marker)}
+                            >
+                              Batafsil ma'lumot
+                            </button>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    );
+                  })}
+              </MapContainer>
+            </div>
+          )}
+        </div>
+      </BoxComponent>
+
+      {/* Student Detail Sidebar */}
+      <StudentDetailSidebar
+        isOpen={sidebarOpen}
+        onClose={handleCloseSidebar}
+        studentData={selectedStudent}
+        loading={studentLoading}
+      />
+    </>
   );
 };
 
