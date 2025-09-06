@@ -33,7 +33,8 @@ const Tutors = () => {
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openStudentsModal, setOpenStudentsModal] = useState(false);
   const [editingTutor, setEditingTutor] = useState(null);
-  const [selectedGroupForStudents, setSelectedGroupForStudents] = useState(null);
+  const [selectedGroupForStudents, setSelectedGroupForStudents] =
+    useState(null);
   const [groupStudents, setGroupStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
 
@@ -624,7 +625,9 @@ const Tutors = () => {
                   <h3 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
                     <MdGroup className="text-purple-500" />
                     <span>
-                      {selectedGroupForStudents?.name || selectedGroupForStudents} - Studentlar
+                      {selectedGroupForStudents?.name ||
+                        selectedGroupForStudents}{" "}
+                      - Studentlar
                     </span>
                   </h3>
                   <motion.button
@@ -889,7 +892,7 @@ const Tutors = () => {
                           <div className="flex items-center space-x-4">
                             <div className="relative">
                               <img
-                                src={item.image}
+                                src={`https://tutorapp.kerek.uz${item.image}`}
                                 className="w-16 h-16 rounded-full object-cover border-2 border-blue-200"
                                 alt="tutorImage"
                               />
@@ -1083,7 +1086,7 @@ const Tutors = () => {
                               >
                                 <MdVisibility size={16} />
                               </motion.button>
-                              
+
                               {openCreateSide && (
                                 <div
                                   className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
