@@ -18,7 +18,6 @@ const ModernBoxComponent = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       className={className}
-      whileHover={hoverable ? { y: -2 } : {}}
     >
       <Card
         title={title}
