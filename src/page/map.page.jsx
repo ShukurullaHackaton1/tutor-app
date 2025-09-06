@@ -24,7 +24,7 @@ const MapPage = () => {
         </>
       )}{" "}
       <div className="py-2"></div>
-      <MapComponent />;
+      <MapComponent />
     </>
   );
 };
