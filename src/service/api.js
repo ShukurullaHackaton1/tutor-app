@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL ni to'g'ri o'rnatish
-axios.defaults.baseURL = "http://tutorapp.kerek.uz";
+axios.defaults.baseURL = "https://tutorapp.kerek.uz";
 
 // Request interceptor - har bir so'rovga token qo'shish
 axios.interceptors.request.use(
