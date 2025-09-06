@@ -5,9 +5,23 @@ import BoxComponent from "../components/boxComponent";
 import { Link } from "react-router-dom";
 import TutorService from "../service/tutor.service";
 import ShimmerLoading from "../components/loading/loading";
-import TrashIcon from "../icons/trash.png";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  MdAdd,
+  MdEdit,
+  MdDelete,
+  MdClose,
+  MdPerson,
+  MdPhone,
+  MdLock,
+  MdEmail,
+  MdGroup,
+  MdVisibility,
+  MdCheck,
+} from "react-icons/md";
 import OptionComponent from "../components/option.component";
 import EditPng from "../icons/Edit.png";
+import TrashIcon from "../icons/trash.png";
 import toast from "react-hot-toast";
 
 const Tutors = () => {
@@ -18,8 +32,13 @@ const Tutors = () => {
   const [openCreateSide, setOpenCreateSide] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openAddGroupModal, setOpenAddGroupModal] = useState(false);
+  const [openStudentsModal, setOpenStudentsModal] = useState(false);
   const [editingTutor, setEditingTutor] = useState(null);
   const [addingGroupToTutor, setAddingGroupToTutor] = useState(null);
+  const [selectedGroupForStudents, setSelectedGroupForStudents] =
+    useState(null);
+  const [groupStudents, setGroupStudents] = useState([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
 
   // Create form states
   const [thumbnailImage, setThumbnailImage] = useState(
@@ -39,6 +58,7 @@ const Tutors = () => {
   const [editLastname, setEditLastname] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editLogin, setEditLogin] = useState("");
+  const [editPassword, setEditPassword] = useState("");
 
   const [search, setSearch] = useState("");
   const [openWarningModal, setOpenWarningModal] = useState(false);
@@ -94,6 +114,7 @@ const Tutors = () => {
     setEditLastname(tutor.name.split(" ").slice(1).join(" ") || "");
     setEditPhone(tutor.phone || "");
     setEditLogin(tutor.login || "");
+    setEditPassword(tutor.password || ""); // YANGI: Hozirgi parolni ko'rsatish
     setEditThumbnailImage(
       tutor.image ||
         "https://static.vecteezy.com/system/resources/thumbnails/024/983/914/small/simple-user-default-icon-free-png.png"
@@ -101,11 +122,27 @@ const Tutors = () => {
     setOpenEditModal(true);
   };
 
-  // Add group modal ni ochish
-  const openAddGroupModalHandler = (tutor) => {
-    setAddingGroupToTutor(tutor);
-    setAddingGroups([]);
-    setOpenAddGroupModal(true);
+  // Guruh studentlarini yuklash
+  const loadGroupStudents = async (groupName) => {
+    setLoadingStudents(true);
+    try {
+      const response = await fetch(
+        `https://tutorapp.kerek.uz/tutor/students-group/${groupName}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("admin-jwt")}`,
+          },
+        }
+      );
+      const data = await response.json();
+      if (data.status === "success") {
+        setGroupStudents(data.data);
+      }
+    } catch (error) {
+      toast.error("Studentlarni yuklashda xatolik");
+    } finally {
+      setLoadingStudents(false);
+    }
   };
 
   // State'larni tozalash funksiyasi
@@ -132,6 +169,7 @@ const Tutors = () => {
     setEditLastname("");
     setEditPhone("");
     setEditLogin("");
+    setEditPassword("");
     setEditImage("");
     setEditThumbnailImage("");
   };
@@ -203,18 +241,10 @@ const Tutors = () => {
 
       const data = await response.json();
       if (data.status == "success") {
-        toast.success("Tutor muaffaqiyatli yaratildi!!");
+        toast.success("Tutor muvaffaqiyatli yaratildi!!");
         setOpenCreateSide(false);
         clearStates();
         TutorService.getTutors(dispatch);
-
-        // TutorNotification yaratish
-        await createTutorNotification(
-          data.data._id,
-          `Siz ${selectGroups.map((g) => g.name).join(", ")} guruh${
-            selectGroups.length > 1 ? "lari" : "i"
-          }ga tutor qilib tayinlandingiz`
-        );
       } else {
         setError({
           state: true,
@@ -231,7 +261,6 @@ const Tutors = () => {
   };
 
   // Tutorni yangilash
-  // Tutorni yangilash
   const updateTutorHandler = async (e) => {
     e.preventDefault();
 
@@ -247,12 +276,16 @@ const Tutors = () => {
     formData.append("phone", editPhone);
     formData.append("login", editLogin);
 
+    // YANGI: Password ham yuborish
+    if (editPassword) {
+      formData.append("password", editPassword);
+    }
+
     if (editImage && editImage instanceof File) {
       formData.append("image", editImage);
     }
 
     try {
-      // URL ni yangilash - tutorning ID sini parametrga qo'shish
       const response = await fetch(
         `https://tutorapp.kerek.uz/tutor/profile/${editingTutor._id}`,
         {
@@ -285,87 +318,11 @@ const Tutors = () => {
     }
   };
 
-  // Guruh qo'shish
-  const addGroupsHandler = async () => {
-    if (addingGroups.length === 0) {
-      return setError({
-        state: true,
-        message: "Iltimos, qo'shiladigan guruhlarni tanlang",
-      });
-    }
-
-    try {
-      const response = await fetch(
-        `https://tutorapp.kerek.uz/tutor/add-group/${addingGroupToTutor._id}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("admin-jwt")}`,
-          },
-          body: JSON.stringify({ groups: addingGroups }),
-        }
-      );
-
-      const data = await response.json();
-      if (data.status === "success") {
-        toast.success("Guruhlar muvaffaqiyatli qo'shildi!");
-        setOpenAddGroupModal(false);
-        setAddingGroups([]);
-        TutorService.getTutors(dispatch);
-
-        // TutorNotification yaratish
-        await createTutorNotification(
-          addingGroupToTutor._id,
-          `Siz ${addingGroups.map((g) => g.name).join(", ")} guruh${
-            addingGroups.length > 1 ? "lari" : "i"
-          }ga tutor qilib qo'shildingiz`
-        );
-      } else {
-        setError({
-          state: true,
-          message: data.message || "Guruh qo'shishda xatolik yuz berdi",
-        });
-      }
-    } catch (error) {
-      console.error("Error adding groups:", error);
-      setError({
-        state: true,
-        message: "Guruh qo'shishda xatolik yuz berdi",
-      });
-    }
-  };
-
-  // TutorNotification yaratish funksiyasi
-  const createTutorNotification = async (tutorId, message) => {
-    try {
-      await fetch("https://tutorapp.kerek.uz/tutor-notification/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("admin-jwt")}`,
-        },
-        body: JSON.stringify({
-          tutorId,
-          message,
-        }),
-      });
-    } catch (error) {
-      console.error("Error creating tutor notification:", error);
-    }
-  };
-
   const removeHandler = async () => {
     try {
       await TutorService.tutorsRemoveGroup(dispatch, selectGroup.tutor.id, {
         groupName: selectGroup.group,
       });
-
-      // TutorNotification yaratish
-      await createTutorNotification(
-        selectGroup.tutor.id,
-        `Siz endi ${selectGroup.group} guruhining tutori emassiz`
-      );
 
       setOpenWarningModal(false);
       setSelectGroup({
@@ -383,311 +340,374 @@ const Tutors = () => {
   return (
     <div className="h-[100vh] overflow-y-scroll">
       <div className="mb-3">
-        <Link className="text-primary">Tutorlar</Link>{" "}
-        <i className="bi bi-chevron-right"></i>
+        <Link className="text-blue-500 hover:text-blue-600 font-medium">
+          Tutorlar
+        </Link>{" "}
+        <i className="bi bi-chevron-right text-gray-400"></i>
       </div>
 
       {/* Warning Modal */}
-      {openWarningModal && (
-        <div className="w-100 h-100 absolute z-[99] top-0 left-0 flex items-center justify-center bg-[#0000005c]">
-          <div className="w-[50%]">
-            <BoxComponent>
-              <h1 className="text-xl font-[500]">
-                <b>{selectGroup.tutor.tutorName}</b> nomli tutordan{" "}
-                <b>{selectGroup.group}</b> nomli guruhni olib tashlamoqchimisiz
-              </h1>
-              <div className="flex mt-3 gap-3">
-                <button
-                  onClick={() => removeHandler()}
-                  className="w-[130px] bg-red-500 text-lg p-2 text-white rounded-[10px] font-[500]"
-                >
-                  Ha
-                </button>
-                <button
-                  onClick={() => {
-                    setOpenWarningModal(false);
-                    setSelectGroup({ tutor: {}, group: "" });
-                  }}
-                  className="w-[130px] bg-blue-500 text-lg p-2 text-white rounded-[10px] font-[500]"
-                >
-                  Bekor qilish
-                </button>
+      <AnimatePresence>
+        {openWarningModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+              onClick={() => setOpenWarningModal(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Guruhni o'chirish
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  <strong>{selectGroup.tutor.tutorName}</strong> nomli tutordan{" "}
+                  <strong>{selectGroup.group}</strong> nomli guruhni olib
+                  tashlamoqchimisiz?
+                </p>
+                <div className="flex space-x-3">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={removeHandler}
+                    className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+                  >
+                    Ha, o'chirish
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setOpenWarningModal(false);
+                      setSelectGroup({ tutor: {}, group: "" });
+                    }}
+                    className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                  >
+                    Bekor qilish
+                  </motion.button>
+                </div>
               </div>
-            </BoxComponent>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Edit Modal */}
-      {openEditModal && (
-        <div className="w-100 h-100 absolute z-[99] top-0 left-0 flex items-center justify-center bg-[#0000005c]">
-          <div className="w-[50%] max-h-[90vh] overflow-y-auto">
-            <BoxComponent>
-              <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-[500]">Tutorni tahrirlash</h1>
-                <button
-                  onClick={() => {
-                    setOpenEditModal(false);
-                    clearEditStates();
-                  }}
-                  className="text-red-500 text-2xl"
-                >
-                  <i className="bi bi-x-lg"></i>
-                </button>
-              </div>
-
-              {error.state && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded my-3">
-                  {error.message}
-                  <button
-                    onClick={() => setError({ message: "", state: false })}
-                    className="float-right font-bold"
-                  >
-                    ×
-                  </button>
-                </div>
-              )}
-
-              <form onSubmit={updateTutorHandler}>
-                <div className="image my-4">
-                  <label
-                    className="flex items-center justify-center"
-                    htmlFor="edit-image"
-                  >
-                    <div className="w-[130px] rounded-lg bg-white p-3 h-[130px] relative">
-                      <img
-                        src={editThumbnailImage}
-                        className="w-[100px] h-[100px] rounded-lg object-cover"
-                        alt="Tutor"
-                      />
-                      <img
-                        src={EditPng}
-                        className="w-[20px] cursor-pointer absolute bottom-[-10px] right-[-10px] h-[20px]"
-                        alt="Edit"
-                      />
-                    </div>
-                  </label>
-                  <input
-                    type="file"
-                    id="edit-image"
-                    onChange={changeEditImage}
-                    className="hidden"
-                    accept="image/*"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="input flex bg-white p-2 rounded-lg">
-                    <input
-                      type="text"
-                      placeholder="Ism"
-                      value={editFirstname}
-                      onChange={(e) => setEditFirstname(e.target.value)}
-                      className="p-2 w-full outline-none text-xl"
-                      required
-                    />
-                  </div>
-                  <div className="input flex bg-white p-2 rounded-lg">
-                    <input
-                      type="text"
-                      placeholder="Familiya"
-                      value={editLastname}
-                      onChange={(e) => setEditLastname(e.target.value)}
-                      className="p-2 w-full outline-none text-xl"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="input flex my-3 bg-white p-2 rounded-lg">
-                  <div className="p-2 col-2 pl-3 outline-none text-xl">
-                    +998
-                  </div>
-                  <input
-                    type="number"
-                    placeholder="Telefon raqami"
-                    value={editPhone}
-                    onChange={(e) => setEditPhone(e.target.value)}
-                    className="p-2 col-9 translate-x-[-20px] outline-none text-xl"
-                  />
-                </div>
-
-                <div className="input flex my-3 bg-white p-2 rounded-lg">
-                  <input
-                    type="text"
-                    placeholder="Login"
-                    value={editLogin}
-                    onChange={(e) => setEditLogin(e.target.value)}
-                    className="p-2 w-full outline-none text-xl"
-                    required
-                  />
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    type="submit"
-                    className="btn btn-primary text-xl rounded-lg flex-1"
-                  >
-                    Yangilash
-                  </button>
-                  <button
-                    type="button"
+      <AnimatePresence>
+        {openEditModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 z-50"
+              onClick={() => {
+                setOpenEditModal(false);
+                clearEditStates();
+              }}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
+                    <MdEdit className="text-blue-500" />
+                    <span>Tutorni tahrirlash</span>
+                  </h3>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
                     onClick={() => {
                       setOpenEditModal(false);
                       clearEditStates();
                     }}
-                    className="btn btn-secondary text-xl rounded-lg flex-1"
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                   >
-                    Bekor qilish
-                  </button>
+                    <MdClose className="text-gray-500" size={20} />
+                  </motion.button>
                 </div>
-              </form>
-            </BoxComponent>
-          </div>
-        </div>
-      )}
 
-      {/* Add Group Modal */}
-      {openAddGroupModal && (
-        <div className="w-100 h-100 absolute z-[99] top-0 left-0 flex items-center justify-center bg-[#0000005c]">
-          <div className="w-[60%] max-h-[90vh] overflow-y-auto">
-            <BoxComponent>
-              <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-[500]">
-                  {addingGroupToTutor?.name} ga guruh qo'shish
-                </h1>
-                <button
-                  onClick={() => {
-                    setOpenAddGroupModal(false);
-                    setAddingGroups([]);
-                  }}
-                  className="text-red-500 text-2xl"
-                >
-                  <i className="bi bi-x-lg"></i>
-                </button>
-              </div>
-
-              {error.state && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded my-3">
-                  {error.message}
-                  <button
-                    onClick={() => setError({ message: "", state: false })}
-                    className="float-right font-bold"
+                {error.state && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4"
                   >
-                    ×
-                  </button>
-                </div>
-              )}
+                    {error.message}
+                    <button
+                      onClick={() => setError({ message: "", state: false })}
+                      className="float-right font-bold text-red-400 hover:text-red-600"
+                    >
+                      ×
+                    </button>
+                  </motion.div>
+                )}
 
-              <div className="input flex my-3 bg-[#F2F5F9] p-2 rounded-lg">
-                <input
-                  type="text"
-                  placeholder="Guruh qidirish"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="p-2 col-11 rounded-lg outline-none text-xl bg-transparent"
-                />
-                <div className="col-1 flex items-center justify-center">
-                  <button className="btn btn-primary">
-                    <i className="bi bi-search text-xl"></i>
-                  </button>
-                </div>
-              </div>
-
-              <div className="h-[50vh] overflow-y-scroll">
-                {tutors.groupLoading ? (
-                  <div>
-                    {[1, 2, 3, 4].map((_, index) => (
-                      <div className="mt-3" key={index}>
-                        <ShimmerLoading height="100px" />
+                <form onSubmit={updateTutorHandler} className="space-y-6">
+                  {/* Image Upload */}
+                  <div className="flex justify-center">
+                    <label htmlFor="edit-image" className="cursor-pointer">
+                      <div className="relative">
+                        <img
+                          src={editThumbnailImage}
+                          className="w-24 h-24 rounded-full object-cover border-4 border-gray-200 hover:border-blue-300 transition-colors"
+                          alt="Tutor"
+                        />
+                        <div className="absolute bottom-0 right-0 p-1 bg-blue-500 rounded-full">
+                          <MdEdit className="text-white" size={16} />
+                        </div>
                       </div>
+                    </label>
+                    <input
+                      type="file"
+                      id="edit-image"
+                      onChange={changeEditImage}
+                      className="hidden"
+                      accept="image/*"
+                    />
+                  </div>
+
+                  {/* Name Fields */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Ism
+                      </label>
+                      <div className="relative">
+                        <MdPerson className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          value={editFirstname}
+                          onChange={(e) => setEditFirstname(e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                          placeholder="Ism"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Familiya
+                      </label>
+                      <div className="relative">
+                        <MdPerson className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          value={editLastname}
+                          onChange={(e) => setEditLastname(e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                          placeholder="Familiya"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Telefon raqam
+                    </label>
+                    <div className="relative">
+                      <MdPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        value={editPhone}
+                        onChange={(e) => setEditPhone(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        placeholder="Telefon raqam"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Login and Password */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Login
+                      </label>
+                      <div className="relative">
+                        <MdEmail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          value={editLogin}
+                          onChange={(e) => setEditLogin(e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                          placeholder="Login"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Parol
+                      </label>
+                      <div className="relative">
+                        <MdLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          value={editPassword}
+                          onChange={(e) => setEditPassword(e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                          placeholder="Parol"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex space-x-3 pt-4">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="submit"
+                      className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                    >
+                      Yangilash
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="button"
+                      onClick={() => {
+                        setOpenEditModal(false);
+                        clearEditStates();
+                      }}
+                      className="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                    >
+                      Bekor qilish
+                    </motion.button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Students Modal */}
+      <AnimatePresence>
+        {openStudentsModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 z-50"
+              onClick={() => {
+                setOpenStudentsModal(false);
+                setSelectedGroupForStudents(null);
+                setGroupStudents([]);
+              }}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <div className="bg-white rounded-xl shadow-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
+                    <MdGroup className="text-purple-500" />
+                    <span>{selectedGroupForStudents?.name} - Studentlar</span>
+                  </h3>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => {
+                      setOpenStudentsModal(false);
+                      setSelectedGroupForStudents(null);
+                      setGroupStudents([]);
+                    }}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <MdClose className="text-gray-500" size={20} />
+                  </motion.button>
+                </div>
+
+                {loadingStudents ? (
+                  <div className="flex justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : groupStudents.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {groupStudents.map((student, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <img
+                            src={student.image}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                            alt="Student"
+                          />
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900">
+                              {student.full_name}
+                            </h4>
+                            <p className="text-sm text-gray-500">
+                              {student.faculty?.name}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end space-y-1">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                student.status === "green"
+                                  ? "bg-green-100 text-green-800"
+                                  : student.status === "yellow"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : student.status === "red"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-blue-100 text-blue-800"
+                              }`}
+                            >
+                              {student.status === "green"
+                                ? "Yaxshi"
+                                : student.status === "yellow"
+                                ? "O'rtacha"
+                                : student.status === "red"
+                                ? "Yomon"
+                                : "Tekshirilmoqda"}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {student.hasFormFilled === "true"
+                                ? "Forma to'ldirilgan"
+                                : "Forma to'ldirilmagan"}
+                            </span>
+                          </div>
+                        </div>
+                      </motion.div>
                     ))}
                   </div>
                 ) : (
-                  <div>
-                    {tutors.groups &&
-                      tutors.groups
-                        .filter(
-                          (group) =>
-                            !addingGroupToTutor?.group?.some(
-                              (existingGroup) =>
-                                existingGroup.name === group.name
-                            )
-                        )
-                        .map((item, index) => (
-                          <div
-                            key={item.id || index}
-                            className="cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg hover:bg-gray-200 transition-colors"
-                            onClick={() => {
-                              const isSelected = addingGroups.find(
-                                (c) => c.code === item.id
-                              );
-                              if (isSelected) {
-                                setAddingGroups(
-                                  addingGroups.filter((c) => c.code !== item.id)
-                                );
-                              } else {
-                                setAddingGroups([
-                                  ...addingGroups,
-                                  {
-                                    name: item.name,
-                                    code: item.id,
-                                  },
-                                ]);
-                              }
-                            }}
-                          >
-                            <div className="p-3 flex items-center justify-between px-4 text-lg font-[500]">
-                              <div>
-                                <div>{item.name}</div>
-                                <div className="text-sm text-gray-500">
-                                  {item.educationLang?.name}
-                                </div>
-                              </div>
-                              <div
-                                className={`w-[30px] flex items-center justify-center text-[#F2F5F9] h-[30px] border rounded-md ${
-                                  addingGroups.find((c) => c.code === item.id)
-                                    ? "bg-primary"
-                                    : "bg-white"
-                                }`}
-                              >
-                                {addingGroups.find(
-                                  (c) => c.code === item.id
-                                ) ? (
-                                  <i className="bi bi-check text-3xl"></i>
-                                ) : (
-                                  ""
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                  <div className="text-center py-12">
+                    <MdGroup className="mx-auto text-gray-400 mb-4" size={48} />
+                    <p className="text-gray-500">
+                      Bu guruhda studentlar topilmadi
+                    </p>
                   </div>
                 )}
               </div>
-
-              <div className="flex gap-3 mt-4">
-                <button
-                  onClick={addGroupsHandler}
-                  className="btn btn-primary text-xl rounded-lg flex-1"
-                  disabled={addingGroups.length === 0}
-                >
-                  Guruh qo'shish ({addingGroups.length})
-                </button>
-                <button
-                  onClick={() => {
-                    setOpenAddGroupModal(false);
-                    setAddingGroups([]);
-                  }}
-                  className="btn btn-secondary text-xl rounded-lg flex-1"
-                >
-                  Bekor qilish
-                </button>
-              </div>
-            </BoxComponent>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <BoxComponent>
         {/* Create Side Panel */}
@@ -847,9 +867,11 @@ const Tutors = () => {
               ) : (
                 <div>
                   {tutors.tutors.map((item) => (
-                    <div
+                    <motion.div
                       key={item._id}
-                      className="cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mb-3 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
                     >
                       <div
                         onClick={() =>
@@ -857,78 +879,112 @@ const Tutors = () => {
                             ? setSelectTutor("")
                             : setSelectTutor(item._id)
                         }
-                        className="flex items-center justify-between"
+                        className="cursor-pointer p-4"
                       >
-                        <div className="info flex item-center items-center gap-4">
-                          <img
-                            src={item.image}
-                            className="w-[60px] bg-[#fff] h-[60px] rounded-full object-cover"
-                            alt="tutorImage"
-                          />
-                          <div>
-                            <h1 className="text-xl font-[500]">{item.name}</h1>
-                            <p className="text-gray-500">
-                              {item.group?.length || 0} ta guruh
-                            </p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <div className="relative">
+                              <img
+                                src={item.image}
+                                className="w-16 h-16 rounded-full object-cover border-2 border-blue-200"
+                                alt="tutorImage"
+                              />
+                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900">
+                                {item.name}
+                              </h3>
+                              <p className="text-sm text-gray-500">
+                                {item.group?.length || 0} ta guruh
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditModalHandler(item);
-                            }}
-                            className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors"
-                            title="Tahrirlash"
-                          >
-                            <i className="bi bi-pencil text-sm"></i>
-                          </button>
-                          <i
-                            className={`bi text-xl font bi-chevron-right ${
-                              selectTutor == item._id ? "rotate-90" : ""
-                            }`}
-                          ></i>
+                          <div className="flex items-center space-x-2">
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditModalHandler(item);
+                              }}
+                              className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                            >
+                              <MdEdit size={16} />
+                            </motion.button>
+                            <motion.div
+                              animate={{
+                                rotate: selectTutor == item._id ? 90 : 0,
+                              }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <i className="bi bi-chevron-right text-gray-400 text-lg"></i>
+                            </motion.div>
+                          </div>
                         </div>
                       </div>
 
-                      {selectTutor == item._id && (
-                        <div className="mt-3">
-                          {item.group &&
-                            item.group.map((group, index) => (
-                              <div
-                                key={index}
-                                className="p-3 flex items-center justify-between px-4 text-lg font-[500] bg-white rounded-lg mb-2"
-                              >
-                                <span>{group.name}</span>
-                                <img
-                                  onClick={() => {
-                                    setOpenWarningModal(true);
-                                    setSelectGroup({
-                                      tutor: {
-                                        id: item._id,
-                                        tutorName: item.name,
-                                      },
-                                      group: group.name,
-                                    });
-                                  }}
-                                  src={TrashIcon}
-                                  className="cursor-pointer w-5 h-5"
-                                  alt="delete"
-                                />
-                              </div>
-                            ))}
-
-                          {/* Guruh qo'shish tugmasi */}
-                          <button
-                            onClick={() => openAddGroupModalHandler(item)}
-                            className="w-full mt-2 p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
+                      <AnimatePresence>
+                        {selectTutor == item._id && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="border-t border-gray-100 p-4 bg-gray-50"
                           >
-                            <i className="bi bi-plus-lg"></i>
-                            <span>Guruh qo'shish</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                            <div className="space-y-3">
+                              {item.group &&
+                                item.group.map((group, index) => (
+                                  <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
+                                  >
+                                    <span className="font-medium text-gray-800">
+                                      {group.name}
+                                    </span>
+                                    <div className="flex items-center space-x-2">
+                                      <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => {
+                                          setSelectedGroupForStudents(group);
+                                          loadGroupStudents(group.name);
+                                          setOpenStudentsModal(true);
+                                        }}
+                                        className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
+                                        title="Studentlarni ko'rish"
+                                      >
+                                        <MdVisibility size={16} />
+                                      </motion.button>
+                                      <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => {
+                                          setOpenWarningModal(true);
+                                          setSelectGroup({
+                                            tutor: {
+                                              id: item._id,
+                                              tutorName: item.name,
+                                            },
+                                            group: group.name,
+                                          });
+                                        }}
+                                        className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                                        title="Guruhni o'chirish"
+                                      >
+                                        <MdDelete size={16} />
+                                      </motion.button>
+                                    </div>
+                                  </motion.div>
+                                ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
                   ))}
                 </div>
               )}
@@ -952,22 +1008,29 @@ const Tutors = () => {
                 </div>
               )}
 
-              {tutors.groupLoading ? (
-                <div>
-                  {[1, 2, 3, 4].map((_, index) => (
-                    <div className="mt-3" key={index}>
-                      <ShimmerLoading height="100px" />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div>
-                  <div className="h-[60vh] overflow-y-scroll">
+              <div className="bg-white rounded-xl shadow-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Mavjud Guruhlar
+                </h3>
+
+                {tutors.groupLoading ? (
+                  <div>
+                    {[1, 2, 3, 4].map((_, index) => (
+                      <div className="mt-3" key={index}>
+                        <ShimmerLoading height="80px" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-[55vh] overflow-y-auto space-y-3">
                     {tutors.groups &&
                       tutors.groups.map((item, index) => (
-                        <div
+                        <motion.div
                           key={item.id || index}
-                          className="cursor-pointer mb-3 bg-[#F2F5F9] p-3 rounded-lg hover:bg-gray-200 transition-colors"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
                           onClick={() => {
                             if (openCreateSide) {
                               const isSelected = selectGroups.find(
@@ -989,47 +1052,61 @@ const Tutors = () => {
                             }
                           }}
                         >
-                          <div className="p-3 flex items-center justify-between px-4 text-lg font-[500]">
+                          <div className="flex items-center justify-between">
                             <div>
-                              <div>{item.name}</div>
-                              <div className="text-sm text-gray-500">
+                              <h4 className="font-medium text-gray-900">
+                                {item.name}
+                              </h4>
+                              <p className="text-sm text-gray-500">
                                 {item.educationLang?.name}
-                              </div>
+                              </p>
                             </div>
                             {openCreateSide && (
                               <div
-                                className={`w-[30px] flex items-center justify-center text-[#F2F5F9] h-[30px] border rounded-md ${
+                                className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
                                   selectGroups.find((c) => c.code == item.id)
-                                    ? "bg-primary"
-                                    : "bg-white"
+                                    ? "border-blue-500 bg-blue-500"
+                                    : "border-gray-300"
                                 }`}
                               >
-                                {selectGroups.find((c) => c.code == item.id) ? (
-                                  <i className="bi bi-check text-3xl"></i>
-                                ) : (
-                                  ""
+                                {selectGroups.find(
+                                  (c) => c.code == item.id
+                                ) && (
+                                  <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{
+                                      type: "spring",
+                                      stiffness: 400,
+                                    }}
+                                  >
+                                    <MdCheck className="text-white text-sm" />
+                                  </motion.div>
                                 )}
                               </div>
                             )}
                           </div>
-                        </div>
+                        </motion.div>
                       ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center mt-3 justify-end">
-            <button
-              className="btn btn-primary"
+          <div className="flex items-center mt-6 justify-end">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => {
                 setOpenCreateSide(true);
                 clearStates();
               }}
+              className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
-              <i className="bi bi-plus-lg text-2xl"></i>
-            </button>
+              <MdAdd size={20} />
+              <span className="font-medium">Yangi Tutor</span>
+            </motion.button>
           </div>
         </div>
       </BoxComponent>

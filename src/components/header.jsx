@@ -1,205 +1,52 @@
 import React, { useState } from "react";
 import LiveClock from "./liveClock";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Select from "@mui/material/Select";
 import AdminImage from "../images/admin.png";
-import { useDispatch, useSelector } from "react-redux";
-import { courses, provinces, smallStricts } from "../constants";
-import FilterIcon from "../icons/filter.png";
-import StatisticsService from "../service/statistics.service";
+import { motion } from "framer-motion";
 
 const Header = () => {
-  const [province, setProvince] = useState("");
-  const [course, setCourse] = useState("");
-  const [smallStrict, setSmallStrict] = useState("");
-  const [status, setStatus] = useState("");
-
-  const { currentPage } = useSelector((state) => state.ui);
-  const { map } = useSelector((state) => state.statistics);
-  const dispatch = useDispatch();
-
-  const changeProvince = (e) => {
-    setProvince(e.target.value);
-  };
-  const changeCourse = (e) => {
-    setCourse(e.target.value);
-  };
-  const changeSmallStrict = (e) => {
-    setSmallStrict(e.target.value);
-  };
-
-  const filterHandler = () => {
-    const payload = {
-      status: status || null,
-      smallDistrict: smallStrict || null,
-      province: province || null,
-      course: course || null,
-    };
-
-    console.log("Yuborilayotgan ma'lumotlar:", payload);
-
-    StatisticsService.filterAppartmentLocation(dispatch, payload);
-  };
-
   return (
     <div className="flex items-center justify-between">
-      {/* input */}
-      {currentPage == "Xarita" ? (
-        <div className="flex items-center gap-2">
-          <div
-            onClick={() =>
-              status == "green" ? setStatus("") : setStatus("green")
-            }
-            className={`icon rounded-lg  ${
-              status == "green" ? "bg-primary" : "bg-white"
-            }`}
-          >
-            <div className="p-2 cursor-pointer ">
-              <div
-                class="map-location header"
-                style={{ backgroundColor: "#24FE41" }}
-              >
-                👨‍🎓
-              </div>
-            </div>
-          </div>
-          <div
-            onClick={() =>
-              status == "yellow" ? setStatus("") : setStatus("yellow")
-            }
-            className={`icon rounded-lg  ${
-              status == "yellow" ? "bg-primary" : "bg-white"
-            }`}
-          >
-            <div className="p-2  cursor-pointer ">
-              <div
-                class="map-location header"
-                style={{ backgroundColor: "#FFC837" }}
-              >
-                👨‍🎓
-              </div>
-            </div>
-          </div>
-          <div
-            onClick={() => (status == "red" ? setStatus("") : setStatus("red"))}
-            className={`icon rounded-lg  ${
-              status == "red" ? "bg-primary" : "bg-white"
-            }`}
-          >
-            <div className="p-2 cursor-pointer ">
-              <div
-                class="map-location header"
-                style={{ backgroundColor: "#FF512F" }}
-              >
-                👨‍🎓
-              </div>
-            </div>
-          </div>
-          <FormControl
-            sx={{ m: 1, minWidth: 200 }}
-            style={{ background: "#fff" }}
-            size="small"
-          >
-            <InputLabel id="province">Viloyatlar</InputLabel>
-            <Select
-              labelId="province"
-              id="province-small"
-              value={province}
-              label="Age"
-              onChange={changeProvince}
-            >
-              <MenuItem value="">
-                <em>Viloyatlar</em>
-              </MenuItem>
-              {provinces.map((item) => (
-                <MenuItem value={item.name} key={item.name}>
-                  {item.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl
-            sx={{ m: 1, minWidth: 130 }}
-            style={{ background: "#fff" }}
-            size="small"
-          >
-            <InputLabel id="course">Kurslar</InputLabel>
-            <Select
-              labelId="course"
-              id="course-small"
-              value={course}
-              label="Age"
-              onChange={changeCourse}
-            >
-              <MenuItem value="">
-                <em>Kurslar</em>
-              </MenuItem>
-              {courses.map((item) => (
-                <MenuItem value={item.name} key={item.name}>
-                  {item.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl
-            sx={{ m: 1, minWidth: 160 }}
-            style={{ background: "#fff" }}
-            size="small"
-          >
-            <InputLabel id="smallStrict">Kichik tumanlar</InputLabel>
-            <Select
-              labelId="smallStrict"
-              id="smallStrict-small"
-              value={smallStrict}
-              label="Age"
-              onChange={changeSmallStrict}
-            >
-              <MenuItem value="">
-                <em>Kichik tumanlar</em>
-              </MenuItem>
-              {smallStricts.map((item) => (
-                <MenuItem value={item.name} key={item.name}>
-                  {item.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <button
-            onClick={() => filterHandler()}
-            className="btn btn-primary py-2"
-          >
-            <img src={FilterIcon} className="w-[20px] h-[20px] " alt="" />
-          </button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-3">
+      {/* Search */}
+      <div className="flex items-center space-x-4">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex items-center space-x-4"
+        >
           <input
             type="text"
             placeholder="Izlash..."
-            className="outline-none border-none p-2 min-w-[350px] rounded-lg shadow-sm px-3 text-lg"
+            className="outline-none border-2 border-gray-200 p-3 min-w-[350px] rounded-xl shadow-sm px-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
           />
-          <button className="outline-none border-none p-2 bg-[#255ED6] text-white rounded-lg shadow-sm px-3 text-lg">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="outline-none border-none p-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl shadow-lg px-4 text-lg hover:shadow-xl transition-all"
+          >
             <i className="bi bi-search"></i>
-          </button>
-        </div>
-      )}
-      {/* acount */}
-      <div className="flex gap-3 items-center">
-        <div className="date bg-white p-2 px-3 rounded-md shadow-sm">
+          </motion.button>
+        </motion.div>
+      </div>
+
+      {/* User Info */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="flex gap-4 items-center"
+      >
+        <div className="date bg-white p-3 px-4 rounded-xl shadow-md border border-gray-200">
           <LiveClock />
         </div>
-        <div className="user-image">
+        <motion.div whileHover={{ scale: 1.05 }} className="user-image">
           <img
             src={AdminImage}
             alt=""
             width={50}
             height={50}
-            className="rounded-full"
+            className="rounded-full border-2 border-blue-500 shadow-md"
           />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
