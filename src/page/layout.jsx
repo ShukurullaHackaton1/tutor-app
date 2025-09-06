@@ -233,9 +233,16 @@ const Layout = ({ activePage }) => {
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="mb-8 text-center"
+                  className="mb-8 px-2 text-center flex items-center "
                 >
-                  <img src={Logo} className="w-[100px] mx-auto" alt="" />
+                  <img
+                    src={Logo}
+                    className="w-[80px] h-[80px] mx-auto"
+                    alt=""
+                  />
+                  <h1 className="text-md font-semibold">
+                    QARAQALPAQ MÁMLEKETLIK UNIVERSITETI
+                  </h1>
                 </motion.div>
 
                 {/* Navigation */}
@@ -265,14 +272,6 @@ const Layout = ({ activePage }) => {
 
               {/* Bottom Menu */}
               <div className="space-y-2">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  className="flex items-center gap-3 w-full p-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-all"
-                >
-                  <i className="bi bi-question-circle text-lg"></i>
-                  <span className="font-medium">Yordam</span>
-                </motion.button>
-
                 {/* Yangilangan logout tugmasi */}
                 <motion.button
                   whileHover={{ scale: 1.02 }}

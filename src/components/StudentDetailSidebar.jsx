@@ -92,14 +92,14 @@ const StudentDetailSidebar = ({ isOpen, onClose, studentData, loading }) => {
             initial="hidden"
             animate="visible"
             exit="hidden"
-            className="fixed top-0 right-0 h-full w-[450px] bg-white shadow-2xl z-50 overflow-y-auto"
+            className="fixed top-0 right-0 h-full w-[550px] bg-white shadow-2xl z-50 overflow-y-auto"
           >
             {/* Header */}
             <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 z-10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-white bg-opacity-20 rounded-lg">
-                    <MdPerson size={24} />
+                    <MdPerson size={24} color="#333" />
                   </div>
                   <h2 className="text-xl font-semibold">
                     Student ma'lumotlari
@@ -139,9 +139,8 @@ const StudentDetailSidebar = ({ isOpen, onClose, studentData, loading }) => {
                         <img
                           src={studentData.student.image}
                           alt="Student"
-                          className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-blue-200 shadow-lg"
+                          className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-blue-200 shadow-lg"
                         />
-                        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
                       </div>
                     )}
                     <h3 className="mt-4 text-xl font-bold text-gray-800">

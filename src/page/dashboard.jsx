@@ -232,7 +232,7 @@ const Dashboard = () => {
                             <div className="flex items-center space-x-4">
                               <div className="relative">
                                 <img
-                                  src={item.image}
+                                  src={`https://tutorapp.kerek.uz${item.image}`}
                                   className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md"
                                   alt="tutorImage"
                                 />
