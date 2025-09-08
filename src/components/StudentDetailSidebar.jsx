@@ -82,7 +82,7 @@ const StudentDetailSidebar = ({ isOpen, onClose, studentData, loading }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 z-[999]"
+            className="fixed inset-0 bg-black bg-opacity-50 z-[888]"
             onClick={onClose}
           />
 
@@ -92,7 +92,7 @@ const StudentDetailSidebar = ({ isOpen, onClose, studentData, loading }) => {
             initial="hidden"
             animate="visible"
             exit="hidden"
-            className="fixed top-0 right-0 h-full w-[550px] bg-white shadow-2xl z-50 overflow-y-auto"
+            className="fixed top-0 right-0 h-full w-[550px] bg-white shadow-2xl z-[999] overflow-y-auto"
           >
             {/* Header */}
             <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 z-10">
